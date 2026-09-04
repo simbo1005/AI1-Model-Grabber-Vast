@@ -19,10 +19,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -33,11 +33,6 @@ jobs:
 
       - name: Audit custom-node requirements
         run: python scripts/audit_node_requirements.py
-
-      - name: Ensure public Docker Hub repository exists
-        env:
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-        run: python scripts/ensure_dockerhub_repository.py
 
       - name: Free runner disk space
         run: |
