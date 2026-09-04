@@ -80,10 +80,27 @@ select {
   object-fit: contain;
 }
 
-.product-name {
-  color: var(--muted);
-  font-size: 0.76rem;
-  font-weight: 600;
+.service-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.service-link {
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: var(--muted-strong);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.service-link:hover,
+.service-link:focus-visible {
+  border-color: var(--line-strong);
+  color: var(--text);
+  outline: none;
 }
 
 .app-layout {

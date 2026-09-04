@@ -12,9 +12,27 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 
-os.environ["RUNPOD_POD_ID"] = "test-pod"
-
 launcher_app = importlib.import_module("launcher.app")
+
+
+def test_vast_public_service_urls(monkeypatch) -> None:
+    monkeypatch.delenv("COMFYUI_PUBLIC_URL", raising=False)
+    monkeypatch.delenv("JUPYTER_PUBLIC_URL", raising=False)
+    monkeypatch.delenv("ENABLE_HTTPS", raising=False)
+    monkeypatch.setenv("PUBLIC_IPADDR", "103.116.53.7")
+    monkeypatch.setenv("VAST_TCP_PORT_8188", "34721")
+    monkeypatch.setenv("VAST_TCP_PORT_8080", "34722")
+
+    assert launcher_app.comfy_public_url() == "http://103.116.53.7:34721"
+    assert launcher_app.jupyter_public_url() == "http://103.116.53.7:34722"
+
+
+def test_explicit_service_urls_override_platform_detection(monkeypatch) -> None:
+    monkeypatch.setenv("COMFYUI_PUBLIC_URL", "https://comfy.example.test/")
+    monkeypatch.setenv("JUPYTER_PUBLIC_URL", "https://jupyter.example.test/")
+
+    assert launcher_app.comfy_public_url() == "https://comfy.example.test"
+    assert launcher_app.jupyter_public_url() == "https://jupyter.example.test"
 
 
 def test_health_and_public_catalog() -> None:
@@ -61,7 +79,7 @@ def test_catalog_contains_installers_but_no_product_workflows() -> None:
             )
 
 
-def test_krea_2_installer_matches_the_runpod_manifest() -> None:
+def test_krea_2_installer_matches_the_catalog_manifest() -> None:
     catalog = launcher_app.load_catalog()
     installer = next(item for item in catalog["workflows"] if item["id"] == "krea-2")
 
@@ -96,7 +114,7 @@ def test_krea_2_installer_matches_the_runpod_manifest() -> None:
     }
 
 
-def test_minimax_h3_installer_matches_the_runpod_manifest() -> None:
+def test_minimax_h3_installer_matches_the_catalog_manifest() -> None:
     catalog = launcher_app.load_catalog()
     installer = next(
         item for item in catalog["workflows"] if item["id"] == "minimax-h3"

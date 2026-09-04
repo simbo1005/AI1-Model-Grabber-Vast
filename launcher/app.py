@@ -31,10 +31,12 @@ CATALOG_PATH = Path(
     os.getenv("WORKFLOW_CATALOG", SOURCE_ROOT / "catalog" / "workflows.json")
 ).resolve()
 COMFYUI_DIR = Path(
-    os.getenv("COMFYUI_DIR", "/workspace/runpod-slim/ComfyUI")
+    os.getenv("COMFYUI_DIR", "/workspace/ComfyUI")
 ).resolve()
 CUSTOM_NODES_DIR = COMFYUI_DIR / "custom_nodes"
-COMFYUI_VENV = COMFYUI_DIR / ".venv-cu128"
+COMFYUI_VENV = Path(
+    os.getenv("COMFYUI_VENV", str(COMFYUI_DIR / ".venv-cu128"))
+).resolve()
 COMFYUI_LOCAL_URL = os.getenv("COMFYUI_LOCAL_URL", "http://127.0.0.1:8188").rstrip("/")
 DEFAULT_HF_TOKEN_FILE = Path("/opt/dsnn/secrets/hf_token")
 
@@ -116,6 +118,7 @@ class JobState:
     error: str | None = None
     warnings: list[str] = field(default_factory=list)
     comfy_url: str = ""
+    jupyter_url: str = ""
     restart_required: bool = False
     comfy_restarted: bool = False
     started_at: str | None = None
@@ -405,14 +408,38 @@ def public_catalog() -> dict[str, Any]:
     }
 
 
+def vast_public_url(internal_port: int) -> str:
+    public_host = os.getenv("PUBLIC_IPADDR", "").strip()
+    public_port = os.getenv(f"VAST_TCP_PORT_{internal_port}", "").strip()
+    if not public_host or not public_port.isdigit():
+        return ""
+    if ":" in public_host and not public_host.startswith("["):
+        public_host = f"[{public_host}]"
+    configured_scheme = os.getenv("VAST_PUBLIC_SCHEME", "").strip().lower()
+    https_enabled = os.getenv("ENABLE_HTTPS", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    scheme = configured_scheme if configured_scheme in {"http", "https"} else (
+        "https" if https_enabled else "http"
+    )
+    return f"{scheme}://{public_host}:{public_port}"
+
+
 def comfy_public_url() -> str:
     explicit = os.getenv("COMFYUI_PUBLIC_URL", "").strip()
     if explicit:
         return explicit.rstrip("/")
-    pod_id = os.getenv("RUNPOD_POD_ID", "").strip()
-    if pod_id:
-        return f"https://{pod_id}-8188.proxy.runpod.net"
-    return ""
+    return vast_public_url(8188)
+
+
+def jupyter_public_url() -> str:
+    explicit = os.getenv("JUPYTER_PUBLIC_URL", "").strip()
+    if explicit:
+        return explicit.rstrip("/")
+    return vast_public_url(8080)
 
 
 def safe_destination(relative_path: str) -> Path:
@@ -1114,7 +1141,10 @@ class ComfyServiceController:
 
 class JobController:
     def __init__(self) -> None:
-        self.state = JobState(comfy_url=comfy_public_url())
+        self.state = JobState(
+            comfy_url=comfy_public_url(),
+            jupyter_url=jupyter_public_url(),
+        )
         self.task: asyncio.Task[None] | None = None
         self.cancel_event = asyncio.Event()
         self.lock = asyncio.Lock()
@@ -1144,6 +1174,7 @@ class JobController:
                 stage="preparing",
                 message="Preparing workflow…",
                 comfy_url=comfy_public_url(),
+                jupyter_url=jupyter_public_url(),
                 started_at=utc_now(),
             )
             self.task = asyncio.create_task(self._run(workflow))

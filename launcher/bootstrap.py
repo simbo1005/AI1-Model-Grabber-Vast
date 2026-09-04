@@ -22,7 +22,7 @@ def enabled(name: str, default: bool) -> bool:
 
 def github_archive() -> Path:
     repository = os.getenv(
-        "LAUNCHER_GITHUB_REPO", "simbo1005/AI1-Model-Grabber-DC"
+        "LAUNCHER_GITHUB_REPO", "simbo1005/AI1-Model-Grabber-Vast"
     ).strip()
     ref = os.getenv("LAUNCHER_GITHUB_REF", "main").strip()
     if not repository or "/" not in repository or not ref:
