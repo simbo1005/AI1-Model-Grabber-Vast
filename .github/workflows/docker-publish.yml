@@ -34,6 +34,11 @@ jobs:
       - name: Audit custom-node requirements
         run: python scripts/audit_node_requirements.py
 
+      - name: Ensure public Docker Hub repository exists
+        env:
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: python scripts/ensure_dockerhub_repository.py
+
       - name: Free runner disk space
         run: |
           echo "Disk space before cleanup:"
