@@ -24,7 +24,7 @@ installer, dependency warming, and diagnostics from the original launcher.
 Use the following image:
 
 ```text
-sdcioba/comfyui-workflow-launcher-vast:1.0
+sdcioba/comfyui-workflow-launcher-vast:1.1
 ```
 
 Select **Docker ENTRYPOINT**. Leave entrypoint arguments and the on-start script
@@ -33,7 +33,7 @@ empty; the image inherits Vast.ai's native boot process.
 Docker options:
 
 ```text
--p 1111:1111 -p 3000:3000 -p 8080:8080 -p 8188:8188 -p 8288:8288 -p 8384:8384 -e OPEN_BUTTON_PORT=1111 -e OPEN_BUTTON_TOKEN=1 -e JUPYTER_DIR=/workspace -e DATA_DIRECTORY=/workspace
+-p 1111:1111 -p 3000:3000 -p 8080:8080 -p 8188:8188 -p 8288:8288 -p 8384:8384 -e SERVERLESS=false -e SUPERVISOR_SKIP_PYWORKER=true -e OPEN_BUTTON_PORT=1111 -e OPEN_BUTTON_TOKEN=1 -e JUPYTER_DIR=/workspace -e DATA_DIRECTORY=/workspace
 ```
 
 Use at least 60 GB of disk for Krea 2. Use 100 GB for general use and at least
@@ -132,11 +132,11 @@ sdcioba/comfyui-workflow-launcher-vast
 ```
 
 Add a GitHub Actions secret named `DOCKERHUB_TOKEN`, then run **Build and
-publish Vast.ai Docker image** with tag `1.0`.
+publish Vast.ai Docker image** with tag `1.1`.
 
 For a manual build:
 
 ```bash
-docker build --platform linux/amd64 -t sdcioba/comfyui-workflow-launcher-vast:1.0 .
-docker push sdcioba/comfyui-workflow-launcher-vast:1.0
+docker build --platform linux/amd64 -t sdcioba/comfyui-workflow-launcher-vast:1.1 .
+docker push sdcioba/comfyui-workflow-launcher-vast:1.1
 ```

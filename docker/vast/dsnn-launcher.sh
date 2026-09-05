@@ -1,5 +1,5 @@
 #!/bin/bash
-set -Eeuo pipefail
+set -Eeo pipefail
 
 utils=/opt/supervisor-scripts/utils
 . "${utils}/logging.sh"

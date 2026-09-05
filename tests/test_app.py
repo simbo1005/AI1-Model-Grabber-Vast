@@ -15,6 +15,19 @@ from fastapi.testclient import TestClient
 launcher_app = importlib.import_module("launcher.app")
 
 
+def test_vast_image_disables_serverless_worker_and_uses_compatible_shell() -> None:
+    repository_root = Path(__file__).resolve().parents[1]
+    dockerfile = (repository_root / "Dockerfile").read_text(encoding="utf-8")
+    launcher_script = (
+        repository_root / "docker" / "vast" / "dsnn-launcher.sh"
+    ).read_text(encoding="utf-8")
+
+    assert "SERVERLESS=false" in dockerfile
+    assert "SUPERVISOR_SKIP_PYWORKER=true" in dockerfile
+    assert "set -Eeo pipefail" in launcher_script
+    assert "set -Eeuo pipefail" not in launcher_script
+
+
 def test_vast_public_service_urls(monkeypatch) -> None:
     monkeypatch.delenv("COMFYUI_PUBLIC_URL", raising=False)
     monkeypatch.delenv("JUPYTER_PUBLIC_URL", raising=False)
