@@ -1955,16 +1955,23 @@ class JobController:
             pip = COMFYUI_VENV / "bin" / "python"
             if not pip.exists():
                 pip = Path("python3.12")
+            extra_index_url = str(
+                node.get("requirements_extra_index_url") or ""
+            ).strip()
+            if extra_index_url and extra_index_url != "https://pypi.nvidia.com/":
+                raise RuntimeError(
+                    f"Unsupported Python package index for {name}: {extra_index_url}"
+                )
+            network_args = ["--timeout", "30", "--retries", "3"]
+            if extra_index_url:
+                network_args.extend(["--extra-index-url", extra_index_url])
             command: tuple[str | Path, ...] = (
                 pip,
                 "-m",
                 "pip",
                 "install",
                 "--disable-pip-version-check",
-                "--timeout",
-                "30",
-                "--retries",
-                "3",
+                *network_args,
                 "--no-build-isolation",
                 "-r",
                 requirements,

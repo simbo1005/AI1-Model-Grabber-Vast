@@ -24,7 +24,7 @@ installer, dependency warming, and diagnostics from the original launcher.
 Use the following image:
 
 ```text
-sdcioba/comfyui-workflow-launcher-vast:1.1
+sdcioba/comfyui-workflow-launcher-vast:1.2-test
 ```
 
 Select **Docker ENTRYPOINT**. Leave entrypoint arguments and the on-start script
@@ -61,11 +61,9 @@ ComfyUI service on `127.0.0.1:18188`.
 
 ## Workflow catalog
 
-The catalog contains six installers:
+The catalog contains four installers:
 
-- Image Generation (approximately 19.9 GB)
-- Krea 2 (approximately 18.4 GB)
-- Dataset Generator (approximately 44.6 GB)
+- Krea 2 Extended (approximately 25.4 GB)
 - Image Edit (approximately 17.8 GB)
 - Motion Control (approximately 26.5 GB)
 - MiniMax H3 (approximately 63.4 GB)
@@ -125,18 +123,19 @@ python scripts/audit_node_requirements.py
 
 ## Publishing
 
-The GitHub Actions workflow publishes both the requested tag and `latest` to:
+The GitHub Actions workflow publishes the requested tag to:
 
 ```text
 sdcioba/comfyui-workflow-launcher-vast
 ```
 
 Add a GitHub Actions secret named `DOCKERHUB_TOKEN`, then run **Build and
-publish Vast.ai Docker image** with tag `1.1`.
+publish Vast.ai Docker image** with tag `1.2-test`. Select `publish_latest`
+only after the test image has been promoted.
 
 For a manual build:
 
 ```bash
-docker build --platform linux/amd64 -t sdcioba/comfyui-workflow-launcher-vast:1.1 .
-docker push sdcioba/comfyui-workflow-launcher-vast:1.1
+docker build --platform linux/amd64 -t sdcioba/comfyui-workflow-launcher-vast:1.2-test .
+docker push sdcioba/comfyui-workflow-launcher-vast:1.2-test
 ```

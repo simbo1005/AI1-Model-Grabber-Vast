@@ -16,7 +16,7 @@ CATALOG = json.loads((ROOT / "catalog" / "workflows.json").read_text(encoding="u
 # These are intentionally not part of the wheel cache. dlib is built separately;
 # the others need a deliberate compatibility review before being pre-installed.
 ALLOWED_SOURCE_MARKERS = tuple(
-    line.strip().lower()
+    line.partition("#")[0].strip().lower()
     for line in (ROOT / "docker" / "known-source-builds.txt").read_text(encoding="utf-8").splitlines()
     if line.strip() and not line.lstrip().startswith("#")
 )

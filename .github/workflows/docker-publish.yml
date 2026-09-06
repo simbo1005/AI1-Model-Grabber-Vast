@@ -6,7 +6,12 @@ on:
       tag:
         description: Docker image tag
         required: true
-        default: "1.1"
+        default: "1.2-test"
+      publish_latest:
+        description: Also update the latest tag
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -65,7 +70,7 @@ jobs:
           push: true
           tags: |
             ${{ env.IMAGE_NAME }}:${{ inputs.tag }}
-            ${{ env.IMAGE_NAME }}:latest
+            ${{ inputs.publish_latest && format('{0}:latest', env.IMAGE_NAME) || '' }}
           build-args: |
             IMAGE_VERSION=${{ inputs.tag }}
           cache-from: type=gha

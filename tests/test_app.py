@@ -57,8 +57,8 @@ def test_health_and_public_catalog() -> None:
         response = client.get("/api/catalog")
         assert response.status_code == 200
         workflows = response.json()["workflows"]
-        assert len(workflows) == 6
-        assert sum(not item.get("disabled", False) for item in workflows) == 6
+        assert len(workflows) == 4
+        assert sum(not item.get("disabled", False) for item in workflows) == 4
         assert "files" not in workflows[0]
         assert "custom_nodes" not in workflows[0]
         assert "url" not in workflows[0]
@@ -69,13 +69,16 @@ def test_catalog_contains_installers_but_no_product_workflows() -> None:
     enabled = [item for item in catalog["workflows"] if not item.get("disabled")]
 
     assert [item["id"] for item in enabled] == [
-        "image-generation",
-        "krea-2",
-        "dataset-generator",
+        "krea-2-extended",
         "image-edit",
         "motion-control",
         "minimax-h3",
     ]
+    assert {
+        "image-generation",
+        "krea-2",
+        "dataset-generator",
+    }.isdisjoint(item["id"] for item in catalog["workflows"])
     assert all(item["files"] for item in enabled)
     assert all(item["custom_nodes"] for item in enabled)
 
@@ -87,44 +90,44 @@ def test_catalog_contains_installers_but_no_product_workflows() -> None:
             assert file_spec["size_bytes"] > 0
             assert len(file_spec["sha256"]) == 64
             assert file_spec["auth"] in {"none", "huggingface"}
-            assert launcher_app.filename_from_url(file_spec["url"]) == (
-                Path(file_spec["destination"]).name
-            )
+            assert file_spec["parallel"] is True
 
 
-def test_krea_2_installer_matches_the_catalog_manifest() -> None:
+def test_krea_2_extended_installer_matches_the_multiflow_registry() -> None:
     catalog = launcher_app.load_catalog()
-    installer = next(item for item in catalog["workflows"] if item["id"] == "krea-2")
+    installer = next(
+        item for item in catalog["workflows"] if item["id"] == "krea-2-extended"
+    )
 
-    assert installer["estimated_size"] == "Approx. 18.4 GB"
+    assert installer["estimated_size"] == "Approx. 25.4 GB"
+    assert sum(item["size_bytes"] for item in installer["files"]) == 25_418_064_756
     assert [item["destination"] for item in installer["files"]] == [
         "models/diffusion_models/krea2_turbo_fp8_scaled.safetensors",
+        "models/loras/krea2_identity_edit_v1_2.safetensors",
+        "models/loras/snofs_krea_v1_4.safetensors",
+        "models/loras/krea2-bloomgirls-realism-step00004000.safetensors",
+        "models/loras/ass_v2_krea2_loraholic.safetensors",
+        "models/loras/breast_size_v2_krea2_loraholic.safetensors",
+        "models/loras/famegrid_spicy.safetensors",
+        "models/upscale_models/4xNMKDSuperscale_4xNMKDSuperscale.pt",
         "models/text_encoders/qwen3vl_4b_fp8_scaled.safetensors",
         "models/vae/qwen_image_vae.safetensors",
-        "models/loras/MysticXXX_KREA2_v3.safetensors",
-        "models/loras/pawg_krea2.safetensors",
-        "models/loras/RealisticSnapshotKrea2.safetensors",
-        "models/upscale_models/4xNMKDSuperscale_4xNMKDSuperscale.pt",
-        "models/ultralytics/bbox/face_yolov8m.pt",
         "models/sams/sam_vit_b_01ec64.pth",
+        "models/ultralytics/bbox/face_yolov8m.pt",
     ]
     assert [item["name"] for item in installer["custom_nodes"]] == [
-        "rgthree-comfy",
-        "ComfyUI-Impact-Pack",
-        "ComfyUI-Impact-Subpack",
+        "comfyui-krea2edit",
+        "ComfyUI_Comfyroll_CustomNodes",
         "ComfyUI-KJNodes",
+        "ComfyUI-Impact-Subpack",
+        "ComfyUI-Impact-Pack",
+        "rgthree-comfy",
         "RES4LYF",
     ]
-
-    res4lyf_refs = {
-        node["ref"]
-        for workflow in catalog["workflows"]
-        for node in workflow.get("custom_nodes", [])
-        if node["name"] == "RES4LYF"
-    }
-    assert res4lyf_refs == {
-        "e716cd1cb2c5cff90131bf4914b75b75a0489d48",
-    }
+    assert all(
+        re.fullmatch(r"[0-9a-f]{40}", node["ref"])
+        for node in installer["custom_nodes"]
+    )
 
 
 def test_minimax_h3_installer_matches_the_catalog_manifest() -> None:
@@ -154,8 +157,6 @@ def test_local_windows_installers_match_the_catalog() -> None:
     catalog = launcher_app.load_catalog()
     workflows = {item["id"]: item for item in catalog["workflows"]}
     installers = {
-        "dataset_generator_model_installer.bat": "dataset-generator",
-        "krea2_model_installer.bat": "krea-2",
         "minimax_h3_model_installer.bat": "minimax-h3",
     }
 
@@ -739,6 +740,9 @@ def test_workflow_fetches_a_missing_pinned_custom_node_commit(
     custom_nodes_dir = comfy_dir / "custom_nodes"
     destination = custom_nodes_dir / "ComfyUI-KJNodes"
     destination.mkdir(parents=True)
+    (destination / "requirements.txt").write_text(
+        "nvidia-vfx\n", encoding="utf-8"
+    )
     monkeypatch.setattr(launcher_app, "CUSTOM_NODES_DIR", custom_nodes_dir)
 
     controller = launcher_app.JobController()
@@ -763,6 +767,7 @@ def test_workflow_fetches_a_missing_pinned_custom_node_commit(
                 "name": "ComfyUI-KJNodes",
                 "repo": repo,
                 "ref": ref,
+                "requirements_extra_index_url": "https://pypi.nvidia.com/",
                 "install_requirements": True,
             }
         )
@@ -770,6 +775,10 @@ def test_workflow_fetches_a_missing_pinned_custom_node_commit(
 
     assert any("fetch" in command and ref in command for command in commands)
     assert any("checkout" in command and ref in command for command in commands)
+    pip_command = next(command for command in commands if "pip" in command)
+    assert pip_command[pip_command.index("--extra-index-url") + 1] == (
+        "https://pypi.nvidia.com/"
+    )
     assert controller.state.restart_required is True
 
 
