@@ -364,6 +364,23 @@ def normalized_git_remote(url: str) -> str:
     return normalized
 
 
+def link_or_copy(source: Path, target: Path) -> bool:
+    """Hard-link a model into a node checkout, falling back to a safe copy."""
+    try:
+        target.unlink(missing_ok=True)
+        try:
+            os.link(source, target)
+        except OSError:
+            shutil.copy2(source, target)
+        return True
+    except Exception:
+        try:
+            target.unlink(missing_ok=True)
+        except OSError:
+            pass
+        return False
+
+
 def load_catalog() -> dict[str, Any]:
     try:
         data = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
@@ -378,12 +395,51 @@ def load_catalog() -> dict[str, Any]:
 
     seen: set[str] = set()
     for workflow in workflows:
+        if not isinstance(workflow, dict):
+            raise RuntimeError(f"Workflow entry is not an object: {workflow!r}")
         workflow_id = workflow.get("id")
         if not isinstance(workflow_id, str) or not re.fullmatch(r"[a-z0-9][a-z0-9-]*", workflow_id):
             raise RuntimeError(f"Invalid workflow id: {workflow_id!r}")
         if workflow_id in seen:
             raise RuntimeError(f"Duplicate workflow id: {workflow_id}")
         seen.add(workflow_id)
+
+        profile = workflow.get("runtime_profile")
+        if profile not in {None, ""}:
+            raise RuntimeError(f"Unsupported runtime profile: {profile}")
+
+        links = workflow.get("model_links", [])
+        if not isinstance(links, list):
+            raise RuntimeError(f"Workflow {workflow_id} model_links must be a list.")
+        for link in links:
+            if not isinstance(link, dict):
+                raise RuntimeError(f"Workflow {workflow_id} has an invalid model link.")
+            source = str(link.get("source", ""))
+            destination = str(link.get("destination", ""))
+            source_path = PurePosixPath(source)
+            destination_path = PurePosixPath(destination)
+            if (
+                not source
+                or source_path.is_absolute()
+                or ".." in source_path.parts
+                or "\\" in source
+                or not source_path.parts
+                or source_path.parts[0] != "models"
+            ):
+                raise RuntimeError(f"Workflow {workflow_id} has an unsafe model link source.")
+            if (
+                not destination
+                or destination_path.is_absolute()
+                or ".." in destination_path.parts
+                or "\\" in destination
+                or not destination_path.parts
+                or destination_path.parts[0] != "custom_nodes"
+            ):
+                raise RuntimeError(
+                    f"Workflow {workflow_id} has an unsafe model link destination."
+                )
+            if source_path.name != destination_path.name:
+                raise RuntimeError(f"Workflow {workflow_id} has a renaming model link.")
     return data
 
 
@@ -1417,6 +1473,7 @@ class JobController:
         await self._wait_for_comfyui()
         files = workflow.get("files", [])
         nodes = workflow.get("custom_nodes", [])
+        model_links = workflow.get("model_links", [])
         should_update_comfyui = bool(workflow.get("update_comfyui"))
         if not files and not nodes and not should_update_comfyui:
             raise RuntimeError(
@@ -1473,6 +1530,9 @@ class JobController:
 
         if nodes:
             await self._install_custom_nodes(nodes)
+        if model_links:
+            self.update(stage="installing", message="Placing custom-node model files…")
+            await self._apply_model_links(model_links)
 
     async def _download_file(
         self,
@@ -1868,6 +1928,27 @@ class JobController:
             cancellation.cancel()
             await asyncio.gather(cancellation, return_exceptions=True)
             self.record_diagnostic("command", str(command[0]), started)
+
+    async def _apply_model_links(self, links: list[dict[str, Any]]) -> None:
+        """Expose downloaded models at private paths required by custom nodes."""
+        for link in links:
+            source = safe_destination(str(link.get("source", "")))
+            destination = safe_destination(str(link.get("destination", "")))
+            if not source.is_relative_to((COMFYUI_DIR / "models").resolve()):
+                raise RuntimeError("A model link source must be inside ComfyUI/models.")
+            if not destination.is_relative_to((COMFYUI_DIR / "custom_nodes").resolve()):
+                raise RuntimeError(
+                    "A model link destination must be inside ComfyUI/custom_nodes."
+                )
+            if source.name != destination.name:
+                raise RuntimeError("A model link may not rename its source file.")
+            if not source.is_file():
+                raise RuntimeError(f"Model link source is missing: {source.name}")
+            if destination.exists() and destination.is_dir():
+                raise RuntimeError(f"Model link destination is a directory: {destination}")
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            if not await asyncio.to_thread(link_or_copy, source, destination):
+                raise RuntimeError(f"Could not place {source.name} for its custom node.")
 
     async def _install_custom_node(self, node: dict[str, Any]) -> None:
         name = str(node.get("name", "")).strip()

@@ -57,8 +57,8 @@ def test_health_and_public_catalog() -> None:
         response = client.get("/api/catalog")
         assert response.status_code == 200
         workflows = response.json()["workflows"]
-        assert len(workflows) == 4
-        assert sum(not item.get("disabled", False) for item in workflows) == 4
+        assert len(workflows) == 5
+        assert sum(not item.get("disabled", False) for item in workflows) == 5
         assert "files" not in workflows[0]
         assert "custom_nodes" not in workflows[0]
         assert "url" not in workflows[0]
@@ -72,6 +72,7 @@ def test_catalog_contains_installers_but_no_product_workflows() -> None:
         "krea-2-extended",
         "image-edit",
         "motion-control",
+        "motion-control-god-edition",
         "minimax-h3",
     ]
     assert {
@@ -128,6 +129,96 @@ def test_krea_2_extended_installer_matches_the_multiflow_registry() -> None:
         re.fullmatch(r"[0-9a-f]{40}", node["ref"])
         for node in installer["custom_nodes"]
     )
+
+
+def test_motion_control_installer_matches_the_wan_manifest() -> None:
+    catalog = launcher_app.load_catalog()
+    installer = next(
+        item for item in catalog["workflows"] if item["id"] == "motion-control"
+    )
+
+    assert installer["estimated_size"] == "Approx. 45.4 GB"
+    assert sum(item["size_bytes"] for item in installer["files"]) == 45_373_632_603
+    assert [item["destination"] for item in installer["files"]] == [
+        "models/checkpoints/sam3.1_multiplex_fp16.safetensors",
+        "models/clip_vision/clip_vision_h.safetensors",
+        "models/diffusion_models/wan2.1_14B_SCAIL_2_fp16.safetensors",
+        "models/vae/wan_2.1_vae.safetensors",
+        "models/loras/wan2.2_i2v_A14b_low_noise_lora_rank64_lightx2v_4step_1022.safetensors",
+        "models/loras/slop_twerk_LowNoise_merged3_7_v2.safetensors",
+        "models/loras/slop_twerk_HighNoise_merged3_7_v2.safetensors",
+        "models/loras/wan2.1_SCAIL_2_DPO_lora_bf16.safetensors",
+        "models/text_encoders/umt5-xxl-encoder-fp8-e4m3fn-scaled.safetensors",
+    ]
+    assert [item["name"] for item in installer["custom_nodes"]] == [
+        "ComfyUI-SAM3",
+        "ComfyUI-VideoHelperSuite",
+        "ComfyUI-Logic",
+        "Nvidia_RTX_Nodes_ComfyUI",
+        "ComfyUI-Easy-Use",
+        "ComfyUI-Custom-Scripts",
+        "ComfyUI-Impact-Pack",
+    ]
+    nvidia = next(
+        item
+        for item in installer["custom_nodes"]
+        if item["name"] == "Nvidia_RTX_Nodes_ComfyUI"
+    )
+    assert nvidia["requirements_extra_index_url"] == "https://pypi.nvidia.com/"
+
+
+def test_motion_control_god_edition_matches_the_workflow_export() -> None:
+    catalog = launcher_app.load_catalog()
+    installer = next(
+        item
+        for item in catalog["workflows"]
+        if item["id"] == "motion-control-god-edition"
+    )
+
+    assert installer["estimated_size"] == "Approx. 61.3 GB"
+    assert sum(item["size_bytes"] for item in installer["files"]) == 61_317_797_596
+    assert installer["update_comfyui"] is True
+    assert [item["destination"] for item in installer["files"]] == [
+        "models/diffusion_models/wan2.2_animate_14B_bf16.safetensors",
+        "models/loras/wan2.2_animate_14B_relight_lora_bf16.safetensors",
+        "models/loras/lightx2v_T2V_14B_cfg_step_distill_v2_lora_rank256_bf16.safetensors",
+        "models/loras/wan2.2_i2v_lightx2v_4steps_lora_v1_low_noise.safetensors",
+        "models/loras/Wan21_PusaV1_LoRA_14B_rank512_bf16.safetensors",
+        "models/loras/Wan2.2-Fun-A14B-InP-low-noise-MPS.safetensors",
+        "models/vae/Wan2_1_VAE_bf16.safetensors",
+        "models/text_encoders/umt5_xxl_fp16.safetensors",
+        "models/clip_vision/clip_vision_h.safetensors",
+        "models/detection/yolov10m.onnx",
+        "models/detection/vitpose_h_wholebody_model.onnx",
+        "models/detection/vitpose_h_wholebody_data.bin",
+        "models/sams/sam2.1_hiera_base_plus.safetensors",
+        "models/frame_interpolation/rife49.pth",
+    ]
+    assert [item["name"] for item in installer["custom_nodes"]] == [
+        "ComfyUI-WanVideoWrapper",
+        "ComfyUI-WanAnimatePreprocess",
+        "ComfyUI-KJNodes",
+        "ComfyUI-segment-anything-2",
+        "ComfyUI-VideoHelperSuite",
+        "ComfyUI-Frame-Interpolation",
+        "ComfyUI-Custom-Scripts",
+        "rgthree-comfy",
+        "ComfyUI-Easy-Use",
+        "ComfyMath",
+        "comfyui-propost",
+        "CRT-Nodes",
+        "ComfyUI_Swwan",
+    ]
+    assert all(
+        re.fullmatch(r"[0-9a-f]{40}", node["ref"])
+        for node in installer["custom_nodes"]
+    )
+    assert installer["model_links"] == [
+        {
+            "source": "models/frame_interpolation/rife49.pth",
+            "destination": "custom_nodes/ComfyUI-Frame-Interpolation/ckpts/rife/rife49.pth",
+        }
+    ]
 
 
 def test_minimax_h3_installer_matches_the_catalog_manifest() -> None:
@@ -1097,6 +1188,41 @@ def test_comfyui_update_uses_official_master_and_runtime_python(
             str(comfy_dir / "requirements.txt"),
         ),
     ]
+
+
+def test_model_link_places_a_custom_node_checkpoint_without_a_second_download(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    comfy_dir = tmp_path / "ComfyUI"
+    source = comfy_dir / "models" / "frame_interpolation" / "rife49.pth"
+    source.parent.mkdir(parents=True)
+    source.write_bytes(b"rife-model")
+    monkeypatch.setattr(launcher_app, "COMFYUI_DIR", comfy_dir)
+    controller = launcher_app.JobController()
+
+    asyncio.run(
+        controller._apply_model_links(
+            [
+                {
+                    "source": "models/frame_interpolation/rife49.pth",
+                    "destination": (
+                        "custom_nodes/ComfyUI-Frame-Interpolation/ckpts/rife/rife49.pth"
+                    ),
+                }
+            ]
+        )
+    )
+
+    destination = (
+        comfy_dir
+        / "custom_nodes"
+        / "ComfyUI-Frame-Interpolation"
+        / "ckpts"
+        / "rife"
+        / "rife49.pth"
+    )
+    assert destination.read_bytes() == b"rife-model"
 
 
 def test_comfyui_update_skips_when_the_installed_commit_is_current(tmp_path, monkeypatch) -> None:

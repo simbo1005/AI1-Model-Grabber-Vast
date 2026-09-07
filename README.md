@@ -61,16 +61,22 @@ ComfyUI service on `127.0.0.1:18188`.
 
 ## Workflow catalog
 
-The catalog contains four installers:
+The catalog contains five installers:
 
 - Krea 2 Extended (approximately 25.4 GB)
 - Image Edit (approximately 17.8 GB)
-- Motion Control (approximately 26.5 GB)
+- WAN Motion Control (approximately 45.4 GB)
+- Motion Control GOD Edition (approximately 61.3 GB)
 - MiniMax H3 (approximately 63.4 GB)
 
 Each preset installs its models and custom nodes. An individual failure is
 reported as a warning while remaining items continue. Product workflow JSON
 files are deliberately not included.
+
+Some custom nodes expect a model inside their own directory. Catalog
+`model_links` place the already-downloaded model at that private path with a
+hard link when possible, falling back to a copy, so the model is not downloaded
+again.
 
 ## Credentials
 
