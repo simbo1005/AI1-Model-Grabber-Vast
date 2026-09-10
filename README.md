@@ -36,7 +36,7 @@ Docker options:
 -p 1111:1111 -p 3000:3000 -p 8080:8080 -p 8188:8188 -p 8288:8288 -p 8384:8384 -e SERVERLESS=false -e SUPERVISOR_SKIP_PYWORKER=true -e OPEN_BUTTON_PORT=1111 -e OPEN_BUTTON_TOKEN=1 -e JUPYTER_DIR=/workspace -e DATA_DIRECTORY=/workspace
 ```
 
-Use at least 60 GB of disk for Krea 2. Use 100 GB for general use and at least
+Use at least 80 GB of disk for Krea 2. Use 100 GB for general use and at least
 130 GB for the largest installer. No persistent volume is required.
 
 After the instance starts, click **Open**. The Instance Portal provides links
@@ -63,7 +63,7 @@ ComfyUI service on `127.0.0.1:18188`.
 
 The catalog contains five installers:
 
-- Krea 2 Extended (approximately 25.4 GB)
+- Krea 2 Extended (approximately 40.0 GB)
 - Image Edit (approximately 17.8 GB)
 - WAN Motion Control (approximately 45.4 GB)
 - Motion Control GOD Edition (approximately 61.3 GB)

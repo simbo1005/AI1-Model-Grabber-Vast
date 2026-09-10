@@ -100,10 +100,12 @@ def test_krea_2_extended_installer_matches_the_multiflow_registry() -> None:
         item for item in catalog["workflows"] if item["id"] == "krea-2-extended"
     )
 
-    assert installer["estimated_size"] == "Approx. 25.4 GB"
-    assert sum(item["size_bytes"] for item in installer["files"]) == 25_418_064_756
+    assert installer["estimated_size"] == "Approx. 40.0 GB"
+    assert sum(item["size_bytes"] for item in installer["files"]) == 40_044_495_122
     assert [item["destination"] for item in installer["files"]] == [
         "models/diffusion_models/krea2_turbo_fp8_scaled.safetensors",
+        "models/diffusion_models/krea2_raw_fp8_scaled.safetensors",
+        "models/loras/krea2_turbo_lora_rank_64_bf16.safetensors",
         "models/loras/krea2_identity_edit_v1_2.safetensors",
         "models/loras/snofs_krea_v1_4.safetensors",
         "models/loras/krea2-bloomgirls-realism-step00004000.safetensors",
@@ -113,6 +115,8 @@ def test_krea_2_extended_installer_matches_the_multiflow_registry() -> None:
         "models/upscale_models/4xNMKDSuperscale_4xNMKDSuperscale.pt",
         "models/text_encoders/qwen3vl_4b_fp8_scaled.safetensors",
         "models/vae/qwen_image_vae.safetensors",
+        "models/vae/Wan2.1_VAE_upscale2x_imageonly_real_v1.safetensors",
+        "models/vae/Wan2_1_VAE_fp32.safetensors",
         "models/sams/sam_vit_b_01ec64.pth",
         "models/ultralytics/bbox/face_yolov8m.pt",
     ]
@@ -124,6 +128,7 @@ def test_krea_2_extended_installer_matches_the_multiflow_registry() -> None:
         "ComfyUI-Impact-Pack",
         "rgthree-comfy",
         "RES4LYF",
+        "ComfyUI-VAE-Utils",
     ]
     assert all(
         re.fullmatch(r"[0-9a-f]{40}", node["ref"])

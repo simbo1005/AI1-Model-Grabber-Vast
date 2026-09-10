@@ -1,13 +1,13 @@
 {
-  "version": 13,
+  "version": 14,
   "workflows": [
     {
       "id": "krea-2-extended",
       "title": "Krea 2 Extended",
-      "description": "Install the extended Krea 2 model stack, six workflow LoRAs, upscaler, detection models and seven supporting custom-node packs.",
+      "description": "Install the extended Krea 2 raw and turbo model stack, seven workflow LoRAs, three VAEs, upscaler, detection models and eight supporting custom-node packs.",
       "badge": "READY",
       "accent": "#5271ff",
-      "estimated_size": "Approx. 25.4 GB",
+      "estimated_size": "Approx. 40.0 GB",
       "files": [
         {
           "name": "Krea 2 Turbo FP8",
@@ -15,6 +15,24 @@
           "destination": "models/diffusion_models/krea2_turbo_fp8_scaled.safetensors",
           "size_bytes": 13141730784,
           "sha256": "eb4dd8c612cfd10f64f25b057e6e6bbcb5737c94a7372177e456dbf7579502f1",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "Krea 2 Raw FP8",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/e5ea8b4dd7f38f348b138eb0fe29f92c0e367e96/diffusion_models/krea2_raw_fp8_scaled.safetensors",
+          "destination": "models/diffusion_models/krea2_raw_fp8_scaled.safetensors",
+          "size_bytes": 13141730784,
+          "sha256": "48cd5d6c100297968349b41a8e77c6591d1dac18a215807f5f25f59e5c54cd61",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "Krea 2 Turbo Rank 64 LoRA",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/e5ea8b4dd7f38f348b138eb0fe29f92c0e367e96/loras/krea2_turbo_lora_rank_64_bf16.safetensors",
+          "destination": "models/loras/krea2_turbo_lora_rank_64_bf16.safetensors",
+          "size_bytes": 469423778,
+          "sha256": "db8c5bae0a415d448da9d842111d6e51f7d32e47143a3118eb267e5c4773de87",
           "auth": "none",
           "parallel": true
         },
@@ -100,6 +118,24 @@
           "parallel": true
         },
         {
+          "name": "Wan 2.1 2x Upscale VAE",
+          "url": "https://huggingface.co/spacepxl/Wan2.1-VAE-upscale2x/resolve/384fb7de682e60bd54b59d6eea810ca9d9993497/Wan2.1_VAE_upscale2x_imageonly_real_v1.safetensors",
+          "destination": "models/vae/Wan2.1_VAE_upscale2x_imageonly_real_v1.safetensors",
+          "size_bytes": 507684560,
+          "sha256": "2413554bbec24215185662d009893cf4666b8e777efece2d895e03e1a6b63e06",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "Wan 2.1 VAE FP32",
+          "url": "https://huggingface.co/Kijai/WanVideo_comfy/resolve/8260d429d19fd7a72304cad059160b95d843913f/Wan2_1_VAE_fp32.safetensors",
+          "destination": "models/vae/Wan2_1_VAE_fp32.safetensors",
+          "size_bytes": 507591244,
+          "sha256": "fd1531e31cdd20af005a9fb66e69afe4ea481a6db9b07cd889ece2e1ca2e67b9",
+          "auth": "none",
+          "parallel": true
+        },
+        {
           "name": "SAM ViT-B",
           "url": "https://huggingface.co/datasets/Gourieff/ReActor/resolve/main/models/sams/sam_vit_b_01ec64.pth",
           "destination": "models/sams/sam_vit_b_01ec64.pth",
@@ -159,6 +195,12 @@
           "name": "RES4LYF",
           "repo": "https://github.com/ClownsharkBatwing/RES4LYF.git",
           "ref": "e716cd1cb2c5cff90131bf4914b75b75a0489d48",
+          "install_requirements": true
+        },
+        {
+          "name": "ComfyUI-VAE-Utils",
+          "repo": "https://github.com/spacepxl/ComfyUI-VAE-Utils.git",
+          "ref": "4c62ea005897fafbc593d69bedb8308ec9f932fd",
           "install_requirements": true
         }
       ]
