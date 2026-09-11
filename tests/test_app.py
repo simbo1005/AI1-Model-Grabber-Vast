@@ -100,8 +100,8 @@ def test_krea_2_extended_installer_matches_the_multiflow_registry() -> None:
         item for item in catalog["workflows"] if item["id"] == "krea-2-extended"
     )
 
-    assert installer["estimated_size"] == "Approx. 40.0 GB"
-    assert sum(item["size_bytes"] for item in installer["files"]) == 40_044_495_122
+    assert installer["estimated_size"] == "Approx. 79.4 GB"
+    assert sum(item["size_bytes"] for item in installer["files"]) == 79_406_568_471
     assert [item["destination"] for item in installer["files"]] == [
         "models/diffusion_models/krea2_turbo_fp8_scaled.safetensors",
         "models/diffusion_models/krea2_raw_fp8_scaled.safetensors",
@@ -119,6 +119,29 @@ def test_krea_2_extended_installer_matches_the_multiflow_registry() -> None:
         "models/vae/Wan2_1_VAE_fp32.safetensors",
         "models/sams/sam_vit_b_01ec64.pth",
         "models/ultralytics/bbox/face_yolov8m.pt",
+        "models/diffusion_models/krea2_turbo_bf16.safetensors",
+        "models/text_encoders/Krea2-Engineer-V1-bf16.safetensors",
+        "models/upscale_models/4x-UltraSharpV2.pth",
+        "models/ultralytics/bbox/Eyes.pt",
+        "models/loras/depth-control-lora.safetensors",
+        "models/loras/krea2_turbo_openpose_controlnet.safetensors",
+        "models/annotators/yzd-v/DWPose/yolox_l.onnx",
+        (
+            "models/annotators/hr16/DWPose-TorchScript-BatchSize5/"
+            "dw-ll_ucoco_384_bs5.torchscript.pt"
+        ),
+        (
+            "models/annotators/depth-anything/Depth-Anything-V2-Large/"
+            "depth_anything_v2_vitl.pth"
+        ),
+        "models/loras/RealisticSnapshotKrea2.safetensors",
+        "models/loras/lenovo_krea2.safetensors",
+        "models/loras/WeightSlider-Krea2_v2.safetensors",
+        "models/loras/phone_photography_2020_krea2.safetensors",
+        "models/loras/MysticXXX_KREA2_v3.safetensors",
+        "models/loras/Krea2_Realistic_Skin_Texture.safetensors",
+        "models/loras/Krea_Amateur_V4.safetensors",
+        "models/loras/krea-smartphone-photo-slider.safetensors",
     ]
     assert [item["name"] for item in installer["custom_nodes"]] == [
         "comfyui-krea2edit",
@@ -129,11 +152,47 @@ def test_krea_2_extended_installer_matches_the_multiflow_registry() -> None:
         "rgthree-comfy",
         "RES4LYF",
         "ComfyUI-VAE-Utils",
+        "comfyui-krea2-controlnet",
+        "comfyui-krea2-conditioning",
+        "ComfyUI-Krea2-Ostris-Edit",
+        "comfyui_controlnet_aux",
+        "CRT-Nodes",
+        "realisim-enhancor",
+        "ComfyUI-Pixaroma",
     ]
     assert all(
         re.fullmatch(r"[0-9a-f]{40}", node["ref"])
         for node in installer["custom_nodes"]
     )
+    assert installer["model_links"] == [
+        {
+            "source": "models/annotators/yzd-v/DWPose/yolox_l.onnx",
+            "destination": (
+                "custom_nodes/comfyui_controlnet_aux/ckpts/yzd-v/DWPose/"
+                "yolox_l.onnx"
+            ),
+        },
+        {
+            "source": (
+                "models/annotators/hr16/DWPose-TorchScript-BatchSize5/"
+                "dw-ll_ucoco_384_bs5.torchscript.pt"
+            ),
+            "destination": (
+                "custom_nodes/comfyui_controlnet_aux/ckpts/hr16/"
+                "DWPose-TorchScript-BatchSize5/dw-ll_ucoco_384_bs5.torchscript.pt"
+            ),
+        },
+        {
+            "source": (
+                "models/annotators/depth-anything/Depth-Anything-V2-Large/"
+                "depth_anything_v2_vitl.pth"
+            ),
+            "destination": (
+                "custom_nodes/comfyui_controlnet_aux/ckpts/depth-anything/"
+                "Depth-Anything-V2-Large/depth_anything_v2_vitl.pth"
+            ),
+        },
+    ]
 
 
 def test_motion_control_installer_matches_the_wan_manifest() -> None:

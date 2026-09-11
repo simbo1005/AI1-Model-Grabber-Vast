@@ -1,13 +1,13 @@
 {
-  "version": 14,
+  "version": 15,
   "workflows": [
     {
       "id": "krea-2-extended",
       "title": "Krea 2 Extended",
-      "description": "Install the extended Krea 2 raw and turbo model stack, seven workflow LoRAs, three VAEs, upscaler, detection models and eight supporting custom-node packs.",
+      "description": "Install the complete verified Krea 2 workflow stack: FP8 and BF16 models, text encoders, 17 LoRAs, three VAEs, two upscalers, detection and ControlNet preprocessor models, and 15 supporting custom-node packs.",
       "badge": "READY",
       "accent": "#5271ff",
-      "estimated_size": "Approx. 40.0 GB",
+      "estimated_size": "Approx. 79.4 GB",
       "files": [
         {
           "name": "Krea 2 Turbo FP8",
@@ -152,6 +152,159 @@
           "sha256": "e3893a92c5c1907136b6cc75404094db767c1e0cfefe1b43e87dad72af2e4c9f",
           "auth": "none",
           "parallel": true
+        },
+        {
+          "name": "Krea 2 Turbo BF16",
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/e5ea8b4dd7f38f348b138eb0fe29f92c0e367e96/diffusion_models/krea2_turbo_bf16.safetensors",
+          "destination": "models/diffusion_models/krea2_turbo_bf16.safetensors",
+          "size_bytes": 26283332608,
+          "sha256": "78bbf8f4165eda19cea3cb06c78089221932a39e2eed8af9da741f942c47ffb3",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "Krea2 Engineer V1 BF16 text encoder",
+          "url": "https://huggingface.co/BennyDaBall/Krea-2-Engineer-V1/resolve/8051413fd9cc5793ff856562834e345b0098be5d/Krea2-Engineer-V1-bf16.safetensors",
+          "destination": "models/text_encoders/Krea2-Engineer-V1-bf16.safetensors",
+          "size_bytes": 8875713440,
+          "sha256": "06bef753117e22c1afa721d387bb9154fcbad2a4eb6a7eac192221d1396c46ab",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "4x UltraSharp V2",
+          "url": "https://huggingface.co/Kim2091/UltraSharpV2/resolve/2d1db39ff692c111da92112d49f833e4ad7035ae/4x-UltraSharpV2.pth",
+          "destination": "models/upscale_models/4x-UltraSharpV2.pth",
+          "size_bytes": 140335046,
+          "sha256": "0335cf48ad654ef79fc14aa97146f0c143c499b0602b2636e2be112f4cd403cf",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "Eyes detector",
+          "url": "https://huggingface.co/ddoc/adtmo/resolve/3b19f8e9add520abf74b6c8d9ebcdff5c82059a9/Eyes.pt",
+          "destination": "models/ultralytics/bbox/Eyes.pt",
+          "size_bytes": 22528604,
+          "sha256": "c59bb696818ad5dfe58c54a881ffb6895c260bd42b4c34dfc97dff2203f45621",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "Krea 2 Depth Control LoRA",
+          "url": "https://huggingface.co/Patil/Krea-2-depth-controlnet/resolve/21889413aa7282a6e78bd510247cceccad034b24/depth-control-lora.safetensors",
+          "destination": "models/loras/depth-control-lora.safetensors",
+          "size_bytes": 861995928,
+          "sha256": "fb80547ed79b47c1e3fea7bb9d36297e3917b2115fab6700ca1501350f9f483c",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "Krea 2 Turbo OpenPose ControlNet LoRA",
+          "url": "https://huggingface.co/thedeoxen/Krea-2-pose-controlnet/resolve/1da9762ca46e6c9e4014b309bf0147889f10982a/krea2_turbo_openpose_controlnet.safetensors",
+          "destination": "models/loras/krea2_turbo_openpose_controlnet.safetensors",
+          "size_bytes": 228587504,
+          "sha256": "0ddc3aafce4abdf7af3309b2f00c1bacdf15df1f2b4fb7adc9ff71795da90ecf",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "DWPose YOLOX detector",
+          "url": "https://huggingface.co/yzd-v/DWPose/resolve/1a7144101628d69ee7a3768d1ee3a094070dc388/yolox_l.onnx",
+          "destination": "models/annotators/yzd-v/DWPose/yolox_l.onnx",
+          "size_bytes": 216746733,
+          "sha256": "7860ae79de6c89a3c1eb72ae9a2756c0ccfbe04b7791bb5880afabd97855a411",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "DWPose TorchScript pose estimator",
+          "url": "https://huggingface.co/hr16/DWPose-TorchScript-BatchSize5/resolve/359d662a9b33b73f6d0f21732baf8845f17bb4be/dw-ll_ucoco_384_bs5.torchscript.pt",
+          "destination": "models/annotators/hr16/DWPose-TorchScript-BatchSize5/dw-ll_ucoco_384_bs5.torchscript.pt",
+          "size_bytes": 135059124,
+          "sha256": "d86a0b2b59fddc0901a7076e9f59c9f8602602133ed72511c693fd11eea23d91",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "Depth Anything V2 Large",
+          "url": "https://huggingface.co/depth-anything/Depth-Anything-V2-Large/resolve/cbbb86a30ce19b5684b7a05155dc7e6cbc7685b9/depth_anything_v2_vitl.pth",
+          "destination": "models/annotators/depth-anything/Depth-Anything-V2-Large/depth_anything_v2_vitl.pth",
+          "size_bytes": 1341395338,
+          "sha256": "a7ea19fa0ed99244e67b624c72b8580b7e9553043245905be58796a608eb9345",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "Realistic Snapshot Krea 2 LoRA",
+          "url": "https://huggingface.co/yufusoft/RealisticSnapshotKrea2/resolve/a19f68dc0aef2e229089ee5eba2591c0cc16e5d5/RealisticSnapshotKrea2.safetensors",
+          "destination": "models/loras/RealisticSnapshotKrea2.safetensors",
+          "size_bytes": 228587720,
+          "sha256": "dfd67eb881bec4caeb9409e5b7c127adcb9fb724e6007e1e77165af51e6f908d",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "Lenovo Krea 2 LoRA",
+          "url": "https://huggingface.co/Danrisi/Lenovo_Krea2/resolve/c74b36c91a1c3b876e06123dc14947fb43161939/lenovo_krea2_3000.safetensors",
+          "destination": "models/loras/lenovo_krea2.safetensors",
+          "size_bytes": 114324736,
+          "sha256": "6967840059e54d0ca6771ae00acdc5979266f761175a8c9380f23f1a3723e9a2",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "Weight Slider Krea 2 v2 LoRA",
+          "url": "https://huggingface.co/Kutches/Kr3a/resolve/12a6461116681143d1e3db8583162c7ccc7d8e35/WeightSlider-KREA2_v2.safetensors",
+          "destination": "models/loras/WeightSlider-Krea2_v2.safetensors",
+          "size_bytes": 7202400,
+          "sha256": "8145f7315b5eb789bdca76665a5c1ace1f4f9883a1b41c7a02fc574be7234296",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "Phone Photography 2020 Krea 2 LoRA",
+          "url": "https://huggingface.co/Kutches/Kr3a/resolve/12a6461116681143d1e3db8583162c7ccc7d8e35/phone_photography_2020_krea2.safetensors",
+          "destination": "models/loras/phone_photography_2020_krea2.safetensors",
+          "size_bytes": 228588904,
+          "sha256": "0f7ca9975ca60aa644be3ee6e77c441592babc20058487ce74b7698abf38eef7",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "Mystic XXX Krea 2 v3 LoRA",
+          "url": "https://huggingface.co/Kutches/Kr3a/resolve/12a6461116681143d1e3db8583162c7ccc7d8e35/MysticXXX_KREA2_v3.safetensors",
+          "destination": "models/loras/MysticXXX_KREA2_v3.safetensors",
+          "size_bytes": 228587304,
+          "sha256": "3437fb03a86c0a3be180b3da67f6a042a13d928d79d46b8835c3d04be6ec4382",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "Krea 2 Realistic Skin Texture LoRA",
+          "url": "https://huggingface.co/inlineresearch/skin-lora-krea-2-raw/resolve/15fbc074697eed816159dbbc99f9c98170301b14/inline-skin-lora-krea-2-raw.safetensors",
+          "destination": "models/loras/Krea2_Realistic_Skin_Texture.safetensors",
+          "size_bytes": 191871280,
+          "sha256": "7ac516bc335953be4afffa53411e38a012e91eaff56afc16c79232438b7040ac",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "Krea Amateur V4 LoRA",
+          "url": "https://huggingface.co/Kutches/Kr3a/resolve/12a6461116681143d1e3db8583162c7ccc7d8e35/Krea_Amateur_V4.safetensors",
+          "destination": "models/loras/Krea_Amateur_V4.safetensors",
+          "size_bytes": 228588912,
+          "sha256": "0ad3b5092c99b4a1696df4ab07407775309da6c21d36c9a506f6b5ff153552ec",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "Krea 2 Smartphone Photography slider LoRA",
+          "url": "https://huggingface.co/reverentelusarca/elusarcas-krea2-smartphone-photography-lora/resolve/de7c66a2f0078d2c17bcc02b1802f3e84104f285/krea-smartphone-photo-slider.safetensors",
+          "destination": "models/loras/krea-smartphone-photo-slider.safetensors",
+          "size_bytes": 28627768,
+          "sha256": "6468a57747ee8953036aedc28eba2034ad6355789151f4f85ef63260ed3fa2ce",
+          "auth": "none",
+          "parallel": true
         }
       ],
       "custom_nodes": [
@@ -202,6 +355,62 @@
           "repo": "https://github.com/spacepxl/ComfyUI-VAE-Utils.git",
           "ref": "4c62ea005897fafbc593d69bedb8308ec9f932fd",
           "install_requirements": true
+        },
+        {
+          "name": "comfyui-krea2-controlnet",
+          "repo": "https://github.com/facok/comfyui-krea2-controlnet.git",
+          "ref": "79ebfd3bd80d2180b334dd7ce57f3c9ddaa0848f",
+          "install_requirements": true
+        },
+        {
+          "name": "comfyui-krea2-conditioning",
+          "repo": "https://github.com/huwhitememes/comfyui-krea2-conditioning.git",
+          "ref": "729cda4fade982988a375b01928f515458407a5c",
+          "install_requirements": true
+        },
+        {
+          "name": "ComfyUI-Krea2-Ostris-Edit",
+          "repo": "https://github.com/ostris/ComfyUI-Krea2-Ostris-Edit.git",
+          "ref": "7756566160c4a1b24bb1bd9f0ff3ced1a83d7547",
+          "install_requirements": true
+        },
+        {
+          "name": "comfyui_controlnet_aux",
+          "repo": "https://github.com/Fannovel16/comfyui_controlnet_aux.git",
+          "ref": "59b1fc411ede8623b2997855b8018f0b3b6cf49f",
+          "install_requirements": true
+        },
+        {
+          "name": "CRT-Nodes",
+          "repo": "https://github.com/PGCRT/CRT-Nodes.git",
+          "ref": "95de8cd9181bae5aa966f2c3c8ae28d38b7f263e",
+          "install_requirements": true
+        },
+        {
+          "name": "realisim-enhancor",
+          "repo": "https://github.com/amrnidal999-tech/comfyui-realisim-enhancor.git",
+          "ref": "46c221ccda903e2f9ad0ec572ff6e866aa6eae0d",
+          "install_requirements": true
+        },
+        {
+          "name": "ComfyUI-Pixaroma",
+          "repo": "https://github.com/pixaroma/ComfyUI-Pixaroma.git",
+          "ref": "bc54fc907b91358a3b7f1e214dc46ed2ef2be53c",
+          "install_requirements": true
+        }
+      ],
+      "model_links": [
+        {
+          "source": "models/annotators/yzd-v/DWPose/yolox_l.onnx",
+          "destination": "custom_nodes/comfyui_controlnet_aux/ckpts/yzd-v/DWPose/yolox_l.onnx"
+        },
+        {
+          "source": "models/annotators/hr16/DWPose-TorchScript-BatchSize5/dw-ll_ucoco_384_bs5.torchscript.pt",
+          "destination": "custom_nodes/comfyui_controlnet_aux/ckpts/hr16/DWPose-TorchScript-BatchSize5/dw-ll_ucoco_384_bs5.torchscript.pt"
+        },
+        {
+          "source": "models/annotators/depth-anything/Depth-Anything-V2-Large/depth_anything_v2_vitl.pth",
+          "destination": "custom_nodes/comfyui_controlnet_aux/ckpts/depth-anything/Depth-Anything-V2-Large/depth_anything_v2_vitl.pth"
         }
       ]
     },

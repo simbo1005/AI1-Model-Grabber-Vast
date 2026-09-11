@@ -63,7 +63,7 @@ ComfyUI service on `127.0.0.1:18188`.
 
 The catalog contains five installers:
 
-- Krea 2 Extended (approximately 40.0 GB)
+- Krea 2 Extended (approximately 79.4 GB)
 - Image Edit (approximately 17.8 GB)
 - WAN Motion Control (approximately 45.4 GB)
 - Motion Control GOD Edition (approximately 61.3 GB)
