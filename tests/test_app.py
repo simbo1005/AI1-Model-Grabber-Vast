@@ -435,6 +435,24 @@ def test_xet_progress_reads_the_active_incomplete_file(tmp_path) -> None:
     assert launcher_app.xet_incomplete_bytes(tmp_path, 0) == 4096
 
 
+def test_xet_speed_uses_a_rolling_window_instead_of_blinking_to_zero() -> None:
+    samples = launcher_app.deque([(0.0, 0)])
+
+    current, first_speed = launcher_app.rolling_transfer_rate(
+        samples, 1.0, 64 * 1024**2
+    )
+    unchanged, held_speed = launcher_app.rolling_transfer_rate(samples, 1.4, current)
+
+    assert unchanged == current
+    assert first_speed > 0
+    assert held_speed > 0
+
+    _unchanged, stalled_speed = launcher_app.rolling_transfer_rate(
+        samples, 7.0, current
+    )
+    assert stalled_speed == 0
+
+
 def test_workflow_download_resets_file_metrics_before_the_next_model(tmp_path, monkeypatch) -> None:
     comfy_dir = tmp_path / "ComfyUI"
     comfy_dir.mkdir()

@@ -665,6 +665,26 @@ def xet_incomplete_bytes(staging_dir: Path, started_at_ns: int) -> int:
         return 0
 
 
+def rolling_transfer_rate(
+    samples: deque[tuple[float, int]],
+    sampled_at: float,
+    current_bytes: int,
+    *,
+    window_seconds: float = 5.0,
+) -> tuple[int, float]:
+    """Smooth chunked Xet progress over a short rolling time window."""
+    previous_bytes = samples[-1][1] if samples else 0
+    observed_bytes = max(previous_bytes, max(0, current_bytes))
+    samples.append((sampled_at, observed_bytes))
+    cutoff = sampled_at - max(0.5, window_seconds)
+    while len(samples) > 2 and samples[1][0] <= cutoff:
+        samples.popleft()
+    elapsed = sampled_at - samples[0][0]
+    transferred = observed_bytes - samples[0][1]
+    speed = transferred / elapsed if elapsed > 0 and transferred > 0 else 0.0
+    return observed_bytes, speed
+
+
 def needs_build_isolation(output: str) -> bool:
     """Only retry without isolation when the failure names a missing backend."""
     lowered = output.lower()
@@ -1745,16 +1765,18 @@ class JobController:
             env=environment,
         )
         download_task = asyncio.create_task(process.communicate())
-        previous_bytes = 0
-        previous_sample = started
+        speed_samples: deque[tuple[float, int]] = deque([(started, 0)])
         try:
             while not download_task.done():
                 await asyncio.sleep(0.4)
                 self.check_cancelled()
-                current = await asyncio.to_thread(xet_incomplete_bytes, staging_dir, started_at_ns)
+                measured = await asyncio.to_thread(
+                    xet_incomplete_bytes, staging_dir, started_at_ns
+                )
                 sampled_at = time.monotonic()
-                sample_seconds = max(sampled_at - previous_sample, 0.01)
-                speed = max(0, current - previous_bytes) / sample_seconds
+                current, speed = rolling_transfer_rate(
+                    speed_samples, sampled_at, measured
+                )
                 file_total = expected_size or current
                 fraction = min(current / file_total, 0.999) if file_total else 0
                 self.update(
@@ -1765,8 +1787,6 @@ class JobController:
                     bytes_per_second=speed,
                     percent=((index + fraction) / max(file_count, 1)) * download_ceiling,
                 )
-                previous_bytes = current
-                previous_sample = sampled_at
         except InstallCancelled:
             await self._stop_process(process)
             await download_task

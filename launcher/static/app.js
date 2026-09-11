@@ -202,8 +202,13 @@ function updatePanel(status) {
     const total = formatBytes(status.file_total_bytes);
     metrics.push(total ? `${downloaded} / ${total}` : downloaded);
   }
-  if (status.bytes_per_second > 0) {
-    metrics.push(`${formatBytes(status.bytes_per_second)}/s`);
+  const speed = Number(status.bytes_per_second || 0);
+  const isDownloadingFile =
+    isRunning && status.stage === "downloading" && Boolean(status.current_file);
+  if (speed > 0) {
+    metrics.push(`${formatBytes(speed)}/s`);
+  } else if (isDownloadingFile) {
+    metrics.push(status.file_downloaded_bytes > 0 ? "0 B/s" : "Measuring speed…");
   }
   if (status.file_count > 1 && status.file_index > 0) {
     metrics.push(`File ${status.file_index} of ${status.file_count}`);
