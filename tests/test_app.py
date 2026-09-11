@@ -435,6 +435,20 @@ def test_xet_progress_reads_the_active_incomplete_file(tmp_path) -> None:
     assert launcher_app.xet_incomplete_bytes(tmp_path, 0) == 4096
 
 
+def test_xet_progress_does_not_treat_sparse_preallocation_as_downloaded(tmp_path) -> None:
+    incomplete = tmp_path / ".cache" / "huggingface" / "download" / "large.incomplete"
+    incomplete.parent.mkdir(parents=True)
+    with incomplete.open("wb") as handle:
+        handle.truncate(64 * 1024**2)
+        handle.seek(32 * 1024**2)
+        handle.write(b"x" * 4096)
+
+    tracked = launcher_app.xet_incomplete_bytes(tmp_path, 0)
+
+    assert tracked >= 4096
+    assert tracked < incomplete.stat().st_size
+
+
 def test_xet_speed_uses_a_rolling_window_instead_of_blinking_to_zero() -> None:
     samples = launcher_app.deque([(0.0, 0)])
 

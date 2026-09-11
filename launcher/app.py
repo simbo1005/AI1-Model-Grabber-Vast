@@ -649,18 +649,20 @@ def file_sha256(path: Path) -> str:
 
 
 def xet_incomplete_bytes(staging_dir: Path, started_at_ns: int) -> int:
-    """Return Xet's current partial-file size without parsing its terminal output."""
+    """Return physically written Xet bytes, accounting for sparse preallocation."""
     download_cache = staging_dir / ".cache" / "huggingface" / "download"
     try:
-        candidates = download_cache.rglob("*.incomplete")
-        return max(
-            (
-                candidate.stat().st_size
-                for candidate in candidates
-                if candidate.stat().st_mtime_ns >= started_at_ns
-            ),
-            default=0,
-        )
+        written: list[int] = []
+        for candidate in download_cache.rglob("*.incomplete"):
+            stat = candidate.stat()
+            if stat.st_mtime_ns < started_at_ns:
+                continue
+            block_count = getattr(stat, "st_blocks", None)
+            if block_count is None:
+                written.append(stat.st_size)
+            else:
+                written.append(min(stat.st_size, max(0, block_count * 512)))
+        return max(written, default=0)
     except OSError:
         return 0
 
