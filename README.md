@@ -21,11 +21,16 @@ installer, dependency warming, and diagnostics from the original launcher.
 
 ## Vast.ai template
 
-Use the following image:
+Use either public registry mirror with the same tag:
 
 ```text
-sdcioba/comfyui-workflow-launcher-vast:1.2-test
+Docker Hub: sdcioba/comfyui-workflow-launcher-vast:<tag>
+GHCR:       ghcr.io/simbo1005/comfyui-workflow-launcher-vast:<tag>
 ```
+
+Both references are produced by the same build. GHCR provides an alternative
+network route when a Vast host has a slow path to Docker Hub, but neither
+registry can guarantee faster pulls on every host.
 
 Select **Docker ENTRYPOINT**. Leave entrypoint arguments and the on-start script
 empty; the image inherits Vast.ai's native boot process.
@@ -38,6 +43,15 @@ Docker options:
 
 Use at least 80 GB of disk for Krea 2. Use 100 GB for general use and at least
 130 GB for the largest installer. No persistent volume is required.
+
+For large image pulls and model downloads, prefer a Verified or Secure Cloud
+host with at least 1,000 MB/s disk speed (2,000+ MB/s is better), at least 500
+Mbps download bandwidth, and 99% or better reliability. Leave enough CPU
+capacity for layer decompression and the workflow itself. These offer metrics are
+selection guidelines, not speed guarantees: registry routing, host load,
+decompression, and the host's existing layer cache can all change startup
+time. A stopped Vast instance keeps its data but continues to incur storage
+charges, so do not keep one stopped solely as an image cache.
 
 After the instance starts, click **Open**. The Instance Portal provides links
 to Workflow Downloader, ComfyUI, the API Wrapper, JupyterLab, and Syncthing.
@@ -129,19 +143,24 @@ python scripts/audit_node_requirements.py
 
 ## Publishing
 
-The GitHub Actions workflow publishes the requested tag to:
+The GitHub Actions workflow builds once and publishes the requested tag to
+both registry mirrors:
 
 ```text
 sdcioba/comfyui-workflow-launcher-vast
+ghcr.io/simbo1005/comfyui-workflow-launcher-vast
 ```
 
 Add a GitHub Actions secret named `DOCKERHUB_TOKEN`, then run **Build and
-publish Vast.ai Docker image** with tag `1.2-test`. Select `publish_latest`
-only after the test image has been promoted.
+publish Vast.ai Docker image** with the desired tag. GHCR authentication uses
+the workflow's built-in `GITHUB_TOKEN`; no additional GHCR secret is needed.
+After the first publish, set the GHCR package visibility to **Public** in its
+package settings. Select `publish_latest` only after the test image has been
+promoted.
 
 For a manual build:
 
 ```bash
-docker build --platform linux/amd64 -t sdcioba/comfyui-workflow-launcher-vast:1.2-test .
-docker push sdcioba/comfyui-workflow-launcher-vast:1.2-test
+docker build --platform linux/amd64 -t sdcioba/comfyui-workflow-launcher-vast:<tag> .
+docker push sdcioba/comfyui-workflow-launcher-vast:<tag>
 ```

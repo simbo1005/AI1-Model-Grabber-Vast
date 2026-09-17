@@ -15,9 +15,11 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 env:
-  IMAGE_NAME: sdcioba/comfyui-workflow-launcher-vast
+  DOCKERHUB_IMAGE: sdcioba/comfyui-workflow-launcher-vast
+  GHCR_IMAGE: ghcr.io/simbo1005/comfyui-workflow-launcher-vast
 
 jobs:
   publish:
@@ -62,6 +64,13 @@ jobs:
           username: sdcioba
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Sign in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -69,8 +78,10 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ${{ env.IMAGE_NAME }}:${{ inputs.tag }}
-            ${{ inputs.publish_latest && format('{0}:latest', env.IMAGE_NAME) || '' }}
+            ${{ env.DOCKERHUB_IMAGE }}:${{ inputs.tag }}
+            ${{ env.GHCR_IMAGE }}:${{ inputs.tag }}
+            ${{ inputs.publish_latest && format('{0}:latest', env.DOCKERHUB_IMAGE) || '' }}
+            ${{ inputs.publish_latest && format('{0}:latest', env.GHCR_IMAGE) || '' }}
           build-args: |
             IMAGE_VERSION=${{ inputs.tag }}
           cache-from: type=gha

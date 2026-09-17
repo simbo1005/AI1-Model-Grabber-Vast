@@ -15,6 +15,21 @@ from fastapi.testclient import TestClient
 launcher_app = importlib.import_module("launcher.app")
 
 
+def test_publish_workflow_targets_docker_hub_and_ghcr_without_recompression() -> None:
+    repository_root = Path(__file__).resolve().parents[1]
+    workflow = (
+        repository_root / ".github" / "workflows" / "docker-publish.yml"
+    ).read_text(encoding="utf-8")
+
+    assert "packages: write" in workflow
+    assert "sdcioba/comfyui-workflow-launcher-vast" in workflow
+    assert "ghcr.io/simbo1005/comfyui-workflow-launcher-vast" in workflow
+    assert "secrets.DOCKERHUB_TOKEN" in workflow
+    assert "secrets.GITHUB_TOKEN" in workflow
+    assert "compression=zstd" not in workflow
+    assert "force-compression" not in workflow
+
+
 def test_vast_image_disables_serverless_worker_and_uses_compatible_shell() -> None:
     repository_root = Path(__file__).resolve().parents[1]
     dockerfile = (repository_root / "Dockerfile").read_text(encoding="utf-8")
