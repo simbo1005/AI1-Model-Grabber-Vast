@@ -524,6 +524,28 @@ def huggingface_token() -> str:
         return ""
 
 
+def hf_download_environment(*, requires_token: bool) -> dict[str, str]:
+    """Build a fast Xet environment without exposing credentials in argv."""
+    environment = os.environ.copy()
+    token = huggingface_token()
+    if requires_token and not token:
+        raise RuntimeError("This file requires Hugging Face access.")
+    if token:
+        environment["HF_TOKEN"] = token
+
+    # Do not depend on the container image inheriting these values. The launcher
+    # can update independently of the image, and Vast templates may override its
+    # environment. Hugging Face documents 16 range requests as the default and
+    # recommends increasing it when network bandwidth remains available.
+    environment["HF_XET_HIGH_PERFORMANCE"] = "1"
+    environment.pop("HF_HUB_DISABLE_XET", None)
+    environment.setdefault(
+        "HF_XET_NUM_CONCURRENT_RANGE_GETS",
+        os.getenv("LAUNCHER_HF_XET_RANGE_GETS", "32"),
+    )
+    return environment
+
+
 def tokenized_request(file_spec: dict[str, Any]) -> tuple[str, dict[str, str]]:
     url = str(file_spec.get("url", "")).strip()
     if not url.startswith(("https://", "http://")):
@@ -1740,15 +1762,10 @@ class JobController:
         staging_dir.mkdir(parents=True, exist_ok=True)
         if not shutil.which("hf"):
             raise RuntimeError("The Hugging Face 'hf' CLI is missing from this image.")
-        environment = os.environ.copy()
-        token = huggingface_token()
-        if requires_token and not token:
-            raise RuntimeError(f"{name} requires Hugging Face access.")
-        # Send the configured token for public downloads as well. Besides making
-        # gated downloads work, this gives the Hub the same authenticated request
-        # context as an `hf auth login` CLI session without exposing it in argv.
-        if token:
-            environment["HF_TOKEN"] = token
+        try:
+            environment = hf_download_environment(requires_token=requires_token)
+        except RuntimeError:
+            raise RuntimeError(f"{name} requires Hugging Face access.") from None
         started = time.monotonic()
         started_at_ns = time.time_ns()
         self.update(

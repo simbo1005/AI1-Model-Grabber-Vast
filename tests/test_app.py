@@ -428,6 +428,21 @@ def test_huggingface_auth_can_use_baked_token_file(
     assert headers["Authorization"] == "Bearer hf_test_only"
 
 
+def test_hf_cli_environment_forces_xet_and_raises_per_file_concurrency(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("HF_HUB_DISABLE_XET", "1")
+    monkeypatch.delenv("HF_XET_HIGH_PERFORMANCE", raising=False)
+    monkeypatch.delenv("HF_XET_NUM_CONCURRENT_RANGE_GETS", raising=False)
+    monkeypatch.setenv("LAUNCHER_HF_XET_RANGE_GETS", "32")
+
+    environment = launcher_app.hf_download_environment(requires_token=False)
+
+    assert environment["HF_XET_HIGH_PERFORMANCE"] == "1"
+    assert environment["HF_XET_NUM_CONCURRENT_RANGE_GETS"] == "32"
+    assert "HF_HUB_DISABLE_XET" not in environment
+
+
 def test_wget_command_uses_resumable_native_downloads(tmp_path) -> None:
     command = launcher_app.wget_command(
         "https://huggingface.co/example/model/resolve/main/model.safetensors",

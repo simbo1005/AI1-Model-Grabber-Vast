@@ -21,6 +21,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     COMFYUI_VENV=/venv/main \
     COMFYUI_LOCAL_URL=http://127.0.0.1:18188 \
     HF_XET_HIGH_PERFORMANCE=1 \
+    HF_XET_NUM_CONCURRENT_RANGE_GETS=32 \
     HF_TOKEN_FILE=/opt/dsnn/secrets/hf_token \
     WORKSPACE=/workspace \
     DATA_DIRECTORY=/workspace \
