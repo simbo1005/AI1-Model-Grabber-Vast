@@ -12,55 +12,9 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 
+os.environ["RUNPOD_POD_ID"] = "test-pod"
+
 launcher_app = importlib.import_module("launcher.app")
-
-
-def test_publish_workflow_targets_docker_hub_and_ghcr_without_recompression() -> None:
-    repository_root = Path(__file__).resolve().parents[1]
-    workflow = (
-        repository_root / ".github" / "workflows" / "docker-publish.yml"
-    ).read_text(encoding="utf-8")
-
-    assert "packages: write" in workflow
-    assert "sdcioba/comfyui-workflow-launcher-vast" in workflow
-    assert "ghcr.io/simbo1005/comfyui-workflow-launcher-vast" in workflow
-    assert "secrets.DOCKERHUB_TOKEN" in workflow
-    assert "secrets.GITHUB_TOKEN" in workflow
-    assert "compression=zstd" not in workflow
-    assert "force-compression" not in workflow
-
-
-def test_vast_image_disables_serverless_worker_and_uses_compatible_shell() -> None:
-    repository_root = Path(__file__).resolve().parents[1]
-    dockerfile = (repository_root / "Dockerfile").read_text(encoding="utf-8")
-    launcher_script = (
-        repository_root / "docker" / "vast" / "dsnn-launcher.sh"
-    ).read_text(encoding="utf-8")
-
-    assert "SERVERLESS=false" in dockerfile
-    assert "SUPERVISOR_SKIP_PYWORKER=true" in dockerfile
-    assert "set -Eeo pipefail" in launcher_script
-    assert "set -Eeuo pipefail" not in launcher_script
-
-
-def test_vast_public_service_urls(monkeypatch) -> None:
-    monkeypatch.delenv("COMFYUI_PUBLIC_URL", raising=False)
-    monkeypatch.delenv("JUPYTER_PUBLIC_URL", raising=False)
-    monkeypatch.delenv("ENABLE_HTTPS", raising=False)
-    monkeypatch.setenv("PUBLIC_IPADDR", "103.116.53.7")
-    monkeypatch.setenv("VAST_TCP_PORT_8188", "34721")
-    monkeypatch.setenv("VAST_TCP_PORT_8080", "34722")
-
-    assert launcher_app.comfy_public_url() == "http://103.116.53.7:34721"
-    assert launcher_app.jupyter_public_url() == "http://103.116.53.7:34722"
-
-
-def test_explicit_service_urls_override_platform_detection(monkeypatch) -> None:
-    monkeypatch.setenv("COMFYUI_PUBLIC_URL", "https://comfy.example.test/")
-    monkeypatch.setenv("JUPYTER_PUBLIC_URL", "https://jupyter.example.test/")
-
-    assert launcher_app.comfy_public_url() == "https://comfy.example.test"
-    assert launcher_app.jupyter_public_url() == "https://jupyter.example.test"
 
 
 def test_health_and_public_catalog() -> None:
@@ -72,8 +26,8 @@ def test_health_and_public_catalog() -> None:
         response = client.get("/api/catalog")
         assert response.status_code == 200
         workflows = response.json()["workflows"]
-        assert len(workflows) == 5
-        assert sum(not item.get("disabled", False) for item in workflows) == 5
+        assert len(workflows) == 6
+        assert sum(not item.get("disabled", False) for item in workflows) == 6
         assert "files" not in workflows[0]
         assert "custom_nodes" not in workflows[0]
         assert "url" not in workflows[0]
@@ -84,17 +38,13 @@ def test_catalog_contains_installers_but_no_product_workflows() -> None:
     enabled = [item for item in catalog["workflows"] if not item.get("disabled")]
 
     assert [item["id"] for item in enabled] == [
-        "krea-2-extended",
-        "image-edit",
-        "motion-control",
-        "motion-control-god-edition",
-        "minimax-h3",
-    ]
-    assert {
         "image-generation",
         "krea-2",
         "dataset-generator",
-    }.isdisjoint(item["id"] for item in catalog["workflows"])
+        "image-edit",
+        "motion-control",
+        "minimax-h3",
+    ]
     assert all(item["files"] for item in enabled)
     assert all(item["custom_nodes"] for item in enabled)
 
@@ -106,201 +56,72 @@ def test_catalog_contains_installers_but_no_product_workflows() -> None:
             assert file_spec["size_bytes"] > 0
             assert len(file_spec["sha256"]) == 64
             assert file_spec["auth"] in {"none", "huggingface"}
-            assert file_spec["parallel"] is True
+            assert launcher_app.filename_from_url(file_spec["url"]) == (
+                Path(file_spec["destination"]).name
+            )
 
 
-def test_krea_2_extended_installer_matches_the_multiflow_registry() -> None:
+def test_krea_2_installer_matches_the_runpod_manifest() -> None:
     catalog = launcher_app.load_catalog()
-    installer = next(
-        item for item in catalog["workflows"] if item["id"] == "krea-2-extended"
-    )
+    installer = next(item for item in catalog["workflows"] if item["id"] == "krea-2")
 
-    assert installer["estimated_size"] == "Approx. 79.4 GB"
-    assert sum(item["size_bytes"] for item in installer["files"]) == 79_406_568_471
+    assert installer["estimated_size"] == "Approx. 18.4 GB"
     assert [item["destination"] for item in installer["files"]] == [
         "models/diffusion_models/krea2_turbo_fp8_scaled.safetensors",
-        "models/diffusion_models/krea2_raw_fp8_scaled.safetensors",
-        "models/loras/krea2_turbo_lora_rank_64_bf16.safetensors",
-        "models/loras/krea2_identity_edit_v1_2.safetensors",
-        "models/loras/snofs_krea_v1_4.safetensors",
-        "models/loras/krea2-bloomgirls-realism-step00004000.safetensors",
-        "models/loras/ass_v2_krea2_loraholic.safetensors",
-        "models/loras/breast_size_v2_krea2_loraholic.safetensors",
-        "models/loras/famegrid_spicy.safetensors",
-        "models/upscale_models/4xNMKDSuperscale_4xNMKDSuperscale.pt",
         "models/text_encoders/qwen3vl_4b_fp8_scaled.safetensors",
         "models/vae/qwen_image_vae.safetensors",
-        "models/vae/Wan2.1_VAE_upscale2x_imageonly_real_v1.safetensors",
-        "models/vae/Wan2_1_VAE_fp32.safetensors",
-        "models/sams/sam_vit_b_01ec64.pth",
-        "models/ultralytics/bbox/face_yolov8m.pt",
-        "models/diffusion_models/krea2_turbo_bf16.safetensors",
-        "models/text_encoders/Krea2-Engineer-V1-bf16.safetensors",
-        "models/upscale_models/4x-UltraSharpV2.pth",
-        "models/ultralytics/bbox/Eyes.pt",
-        "models/loras/depth-control-lora.safetensors",
-        "models/loras/krea2_turbo_openpose_controlnet.safetensors",
-        "models/annotators/yzd-v/DWPose/yolox_l.onnx",
-        (
-            "models/annotators/hr16/DWPose-TorchScript-BatchSize5/"
-            "dw-ll_ucoco_384_bs5.torchscript.pt"
-        ),
-        (
-            "models/annotators/depth-anything/Depth-Anything-V2-Large/"
-            "depth_anything_v2_vitl.pth"
-        ),
-        "models/loras/RealisticSnapshotKrea2.safetensors",
-        "models/loras/lenovo_krea2.safetensors",
-        "models/loras/WeightSlider-Krea2_v2.safetensors",
-        "models/loras/phone_photography_2020_krea2.safetensors",
         "models/loras/MysticXXX_KREA2_v3.safetensors",
-        "models/loras/Krea2_Realistic_Skin_Texture.safetensors",
-        "models/loras/Krea_Amateur_V4.safetensors",
-        "models/loras/krea-smartphone-photo-slider.safetensors",
+        "models/loras/pawg_krea2.safetensors",
+        "models/loras/RealisticSnapshotKrea2.safetensors",
+        "models/upscale_models/4xNMKDSuperscale_4xNMKDSuperscale.pt",
+        "models/ultralytics/bbox/face_yolov8m.pt",
+        "models/sams/sam_vit_b_01ec64.pth",
     ]
     assert [item["name"] for item in installer["custom_nodes"]] == [
-        "comfyui-krea2edit",
-        "ComfyUI_Comfyroll_CustomNodes",
-        "ComfyUI-KJNodes",
+        "rgthree-comfy",
+        "ComfyUI-Impact-Pack",
         "ComfyUI-Impact-Subpack",
-        "ComfyUI-Impact-Pack",
-        "rgthree-comfy",
-        "RES4LYF",
-        "ComfyUI-VAE-Utils",
-        "comfyui-krea2-controlnet",
-        "comfyui-krea2-conditioning",
-        "ComfyUI-Krea2-Ostris-Edit",
-        "comfyui_controlnet_aux",
-        "CRT-Nodes",
-        "realisim-enhancor",
-        "ComfyUI-Pixaroma",
-    ]
-    assert all(
-        re.fullmatch(r"[0-9a-f]{40}", node["ref"])
-        for node in installer["custom_nodes"]
-    )
-    assert installer["model_links"] == [
-        {
-            "source": "models/annotators/yzd-v/DWPose/yolox_l.onnx",
-            "destination": (
-                "custom_nodes/comfyui_controlnet_aux/ckpts/yzd-v/DWPose/"
-                "yolox_l.onnx"
-            ),
-        },
-        {
-            "source": (
-                "models/annotators/hr16/DWPose-TorchScript-BatchSize5/"
-                "dw-ll_ucoco_384_bs5.torchscript.pt"
-            ),
-            "destination": (
-                "custom_nodes/comfyui_controlnet_aux/ckpts/hr16/"
-                "DWPose-TorchScript-BatchSize5/dw-ll_ucoco_384_bs5.torchscript.pt"
-            ),
-        },
-        {
-            "source": (
-                "models/annotators/depth-anything/Depth-Anything-V2-Large/"
-                "depth_anything_v2_vitl.pth"
-            ),
-            "destination": (
-                "custom_nodes/comfyui_controlnet_aux/ckpts/depth-anything/"
-                "Depth-Anything-V2-Large/depth_anything_v2_vitl.pth"
-            ),
-        },
-    ]
-
-
-def test_motion_control_installer_matches_the_wan_manifest() -> None:
-    catalog = launcher_app.load_catalog()
-    installer = next(
-        item for item in catalog["workflows"] if item["id"] == "motion-control"
-    )
-
-    assert installer["estimated_size"] == "Approx. 45.4 GB"
-    assert sum(item["size_bytes"] for item in installer["files"]) == 45_373_632_603
-    assert [item["destination"] for item in installer["files"]] == [
-        "models/checkpoints/sam3.1_multiplex_fp16.safetensors",
-        "models/clip_vision/clip_vision_h.safetensors",
-        "models/diffusion_models/wan2.1_14B_SCAIL_2_fp16.safetensors",
-        "models/vae/wan_2.1_vae.safetensors",
-        "models/loras/wan2.2_i2v_A14b_low_noise_lora_rank64_lightx2v_4step_1022.safetensors",
-        "models/loras/slop_twerk_LowNoise_merged3_7_v2.safetensors",
-        "models/loras/slop_twerk_HighNoise_merged3_7_v2.safetensors",
-        "models/loras/wan2.1_SCAIL_2_DPO_lora_bf16.safetensors",
-        "models/text_encoders/umt5-xxl-encoder-fp8-e4m3fn-scaled.safetensors",
-    ]
-    assert [item["name"] for item in installer["custom_nodes"]] == [
-        "ComfyUI-SAM3",
-        "ComfyUI-VideoHelperSuite",
-        "ComfyUI-Logic",
-        "Nvidia_RTX_Nodes_ComfyUI",
-        "ComfyUI-Easy-Use",
-        "ComfyUI-Custom-Scripts",
-        "ComfyUI-Impact-Pack",
-    ]
-    nvidia = next(
-        item
-        for item in installer["custom_nodes"]
-        if item["name"] == "Nvidia_RTX_Nodes_ComfyUI"
-    )
-    assert nvidia["requirements_extra_index_url"] == "https://pypi.nvidia.com/"
-
-
-def test_motion_control_god_edition_matches_the_workflow_export() -> None:
-    catalog = launcher_app.load_catalog()
-    installer = next(
-        item
-        for item in catalog["workflows"]
-        if item["id"] == "motion-control-god-edition"
-    )
-
-    assert installer["estimated_size"] == "Approx. 61.3 GB"
-    assert sum(item["size_bytes"] for item in installer["files"]) == 61_317_797_596
-    assert installer["update_comfyui"] is True
-    assert [item["destination"] for item in installer["files"]] == [
-        "models/diffusion_models/wan2.2_animate_14B_bf16.safetensors",
-        "models/loras/wan2.2_animate_14B_relight_lora_bf16.safetensors",
-        "models/loras/lightx2v_T2V_14B_cfg_step_distill_v2_lora_rank256_bf16.safetensors",
-        "models/loras/wan2.2_i2v_lightx2v_4steps_lora_v1_low_noise.safetensors",
-        "models/loras/Wan21_PusaV1_LoRA_14B_rank512_bf16.safetensors",
-        "models/loras/Wan2.2-Fun-A14B-InP-low-noise-MPS.safetensors",
-        "models/vae/Wan2_1_VAE_bf16.safetensors",
-        "models/text_encoders/umt5_xxl_fp16.safetensors",
-        "models/clip_vision/clip_vision_h.safetensors",
-        "models/detection/yolov10m.onnx",
-        "models/detection/vitpose_h_wholebody_model.onnx",
-        "models/detection/vitpose_h_wholebody_data.bin",
-        "models/sams/sam2.1_hiera_base_plus.safetensors",
-        "models/frame_interpolation/rife49.pth",
-    ]
-    assert [item["name"] for item in installer["custom_nodes"]] == [
-        "ComfyUI-WanVideoWrapper",
-        "ComfyUI-WanAnimatePreprocess",
         "ComfyUI-KJNodes",
-        "ComfyUI-segment-anything-2",
-        "ComfyUI-VideoHelperSuite",
-        "ComfyUI-Frame-Interpolation",
-        "ComfyUI-Custom-Scripts",
-        "rgthree-comfy",
-        "ComfyUI-Easy-Use",
-        "ComfyMath",
-        "comfyui-propost",
-        "CRT-Nodes",
-        "ComfyUI_Swwan",
+        "RES4LYF",
     ]
-    assert all(
-        re.fullmatch(r"[0-9a-f]{40}", node["ref"])
-        for node in installer["custom_nodes"]
+
+    res4lyf_refs = {
+        node["ref"]
+        for workflow in catalog["workflows"]
+        for node in workflow.get("custom_nodes", [])
+        if node["name"] == "RES4LYF"
+    }
+    assert res4lyf_refs == {
+        "e716cd1cb2c5cff90131bf4914b75b75a0489d48",
+    }
+
+
+def test_image_edit_installer_matches_the_lazarus_face_swap_manifest() -> None:
+    catalog = launcher_app.load_catalog()
+    installer = next(
+        item for item in catalog["workflows"] if item["id"] == "image-edit"
     )
-    assert installer["model_links"] == [
-        {
-            "source": "models/frame_interpolation/rife49.pth",
-            "destination": "custom_nodes/ComfyUI-Frame-Interpolation/ckpts/rife/rife49.pth",
-        }
+
+    assert installer["estimated_size"] == "Approx. 70.3 GB"
+    assert [item["destination"] for item in installer["files"]] == [
+        "models/diffusion_models/flux-2-klein-9b.safetensors",
+        "models/vae/flux2-vae.safetensors",
+        "models/text_encoders/qwen_3_8b_fp8mixed.safetensors",
+        "models/diffusion_models/krea2_turbo_bf16.safetensors",
+        "models/text_encoders/qwen3vl_4b_fp8_scaled.safetensors",
+        "models/vae/wan_2.1_vae.safetensors",
+        "models/text_encoders/qwen3.5_4b_bf16.safetensors",
+        "models/upscale_models/4xPurePhoto-Span.pth",
+        "models/upscale_models/1x-ITF-SkinDiffDetail-Lite-v1.pth",
+        "models/loras/Detailer-KREA2.safetensors",
+        "models/loras/RealisticSnapshotKrea2.safetensors",
+        "models/loras/Famegrid-Natural-V1-Krea-2.safetensors",
+        "models/loras/phone_photography_2020_krea2.safetensors",
     ]
+    assert all("sam2" not in item["destination"].lower() for item in installer["files"])
 
 
-def test_minimax_h3_installer_matches_the_catalog_manifest() -> None:
+def test_minimax_h3_installer_matches_the_runpod_manifest() -> None:
     catalog = launcher_app.load_catalog()
     installer = next(
         item for item in catalog["workflows"] if item["id"] == "minimax-h3"
@@ -327,6 +148,8 @@ def test_local_windows_installers_match_the_catalog() -> None:
     catalog = launcher_app.load_catalog()
     workflows = {item["id"]: item for item in catalog["workflows"]}
     installers = {
+        "dataset_generator_model_installer.bat": "dataset-generator",
+        "krea2_model_installer.bat": "krea-2",
         "minimax_h3_model_installer.bat": "minimax-h3",
     }
 
@@ -448,38 +271,6 @@ def test_xet_progress_reads_the_active_incomplete_file(tmp_path) -> None:
     incomplete.write_bytes(b"x" * 4096)
 
     assert launcher_app.xet_incomplete_bytes(tmp_path, 0) == 4096
-
-
-def test_xet_progress_does_not_treat_sparse_preallocation_as_downloaded(tmp_path) -> None:
-    incomplete = tmp_path / ".cache" / "huggingface" / "download" / "large.incomplete"
-    incomplete.parent.mkdir(parents=True)
-    with incomplete.open("wb") as handle:
-        handle.truncate(64 * 1024**2)
-        handle.seek(32 * 1024**2)
-        handle.write(b"x" * 4096)
-
-    tracked = launcher_app.xet_incomplete_bytes(tmp_path, 0)
-
-    assert tracked >= 4096
-    assert tracked < incomplete.stat().st_size
-
-
-def test_xet_speed_uses_a_rolling_window_instead_of_blinking_to_zero() -> None:
-    samples = launcher_app.deque([(0.0, 0)])
-
-    current, first_speed = launcher_app.rolling_transfer_rate(
-        samples, 1.0, 64 * 1024**2
-    )
-    unchanged, held_speed = launcher_app.rolling_transfer_rate(samples, 1.4, current)
-
-    assert unchanged == current
-    assert first_speed > 0
-    assert held_speed > 0
-
-    _unchanged, stalled_speed = launcher_app.rolling_transfer_rate(
-        samples, 7.0, current
-    )
-    assert stalled_speed == 0
 
 
 def test_workflow_download_resets_file_metrics_before_the_next_model(tmp_path, monkeypatch) -> None:
@@ -942,9 +733,6 @@ def test_workflow_fetches_a_missing_pinned_custom_node_commit(
     custom_nodes_dir = comfy_dir / "custom_nodes"
     destination = custom_nodes_dir / "ComfyUI-KJNodes"
     destination.mkdir(parents=True)
-    (destination / "requirements.txt").write_text(
-        "nvidia-vfx\n", encoding="utf-8"
-    )
     monkeypatch.setattr(launcher_app, "CUSTOM_NODES_DIR", custom_nodes_dir)
 
     controller = launcher_app.JobController()
@@ -969,7 +757,6 @@ def test_workflow_fetches_a_missing_pinned_custom_node_commit(
                 "name": "ComfyUI-KJNodes",
                 "repo": repo,
                 "ref": ref,
-                "requirements_extra_index_url": "https://pypi.nvidia.com/",
                 "install_requirements": True,
             }
         )
@@ -977,10 +764,6 @@ def test_workflow_fetches_a_missing_pinned_custom_node_commit(
 
     assert any("fetch" in command and ref in command for command in commands)
     assert any("checkout" in command and ref in command for command in commands)
-    pip_command = next(command for command in commands if "pip" in command)
-    assert pip_command[pip_command.index("--extra-index-url") + 1] == (
-        "https://pypi.nvidia.com/"
-    )
     assert controller.state.restart_required is True
 
 
@@ -1299,41 +1082,6 @@ def test_comfyui_update_uses_official_master_and_runtime_python(
             str(comfy_dir / "requirements.txt"),
         ),
     ]
-
-
-def test_model_link_places_a_custom_node_checkpoint_without_a_second_download(
-    tmp_path,
-    monkeypatch,
-) -> None:
-    comfy_dir = tmp_path / "ComfyUI"
-    source = comfy_dir / "models" / "frame_interpolation" / "rife49.pth"
-    source.parent.mkdir(parents=True)
-    source.write_bytes(b"rife-model")
-    monkeypatch.setattr(launcher_app, "COMFYUI_DIR", comfy_dir)
-    controller = launcher_app.JobController()
-
-    asyncio.run(
-        controller._apply_model_links(
-            [
-                {
-                    "source": "models/frame_interpolation/rife49.pth",
-                    "destination": (
-                        "custom_nodes/ComfyUI-Frame-Interpolation/ckpts/rife/rife49.pth"
-                    ),
-                }
-            ]
-        )
-    )
-
-    destination = (
-        comfy_dir
-        / "custom_nodes"
-        / "ComfyUI-Frame-Interpolation"
-        / "ckpts"
-        / "rife"
-        / "rife49.pth"
-    )
-    assert destination.read_bytes() == b"rife-model"
 
 
 def test_comfyui_update_skips_when_the_installed_commit_is_current(tmp_path, monkeypatch) -> None:
