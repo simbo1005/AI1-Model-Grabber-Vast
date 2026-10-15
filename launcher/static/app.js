@@ -35,6 +35,8 @@ const elements = {
 const runningStates = new Set(["running"]);
 let workflows = [];
 let activeWorkflowId = null;
+let expandedWorkflowId = null;
+const workflowSelections = new Map();
 let pollTimer = null;
 let customPollTimer = null;
 let customNodePollTimer = null;
@@ -94,33 +96,169 @@ function selectView(viewName, updateHash = true) {
   }
 }
 
+function selectedResources(workflow) {
+  if (!workflowSelections.has(workflow.id)) {
+    workflowSelections.set(
+      workflow.id,
+      new Set(
+        (workflow.resources || [])
+          .filter((resource) => resource.selected_by_default !== false)
+          .map((resource) => resource.id),
+      ),
+    );
+  }
+  return workflowSelections.get(workflow.id);
+}
+
+function workflowResourceGroups(workflow) {
+  const groups = new Map();
+  (workflow.resources || []).forEach((resource) => {
+    const key = resource.category || "other";
+    if (!groups.has(key)) {
+      groups.set(key, {
+        label: resource.category_label || "Supporting resources",
+        resources: [],
+      });
+    }
+    groups.get(key).resources.push(resource);
+  });
+  return [...groups.values()];
+}
+
+function resourcePanel(workflow, isBusy) {
+  const selection = selectedResources(workflow);
+  const groups = workflowResourceGroups(workflow);
+  const selectedCount = (workflow.resources || []).filter((resource) =>
+    selection.has(resource.id),
+  ).length;
+  const selectedBytes = (workflow.resources || []).reduce(
+    (total, resource) => total + (selection.has(resource.id) ? Number(resource.size_bytes || 0) : 0),
+    0,
+  );
+  const controlsDisabled = isBusy || workflow.disabled;
+
+  return `
+    <div class="workflow-resource-panel">
+      <div class="resource-toolbar">
+        <span><strong>${selectedCount}</strong> of ${(workflow.resources || []).length} selected · ${escapeText(formatBytes(selectedBytes) || "0 B")}</span>
+        <span class="resource-toolbar-actions">
+          <button type="button" data-select-all="${escapeText(workflow.id)}" ${controlsDisabled ? "disabled" : ""}>ALL</button>
+          <button type="button" data-select-none="${escapeText(workflow.id)}" ${controlsDisabled ? "disabled" : ""}>NONE</button>
+        </span>
+      </div>
+      <div class="resource-groups">
+        ${groups
+          .map(
+            (group) => `
+              <fieldset class="resource-group">
+                <legend>${escapeText(group.label)}</legend>
+                ${group.resources
+                  .map(
+                    (resource) => `
+                      <label class="resource-option">
+                        <input
+                          type="checkbox"
+                          data-workflow-resource="${escapeText(workflow.id)}"
+                          data-resource-id="${escapeText(resource.id)}"
+                          ${selection.has(resource.id) ? "checked" : ""}
+                          ${controlsDisabled ? "disabled" : ""}
+                        />
+                        <span class="resource-option-copy">
+                          <span>${escapeText(resource.name)}</span>
+                          <small>${escapeText(formatBytes(Number(resource.size_bytes || 0)) || "Size unknown")}</small>
+                        </span>
+                      </label>
+                    `,
+                  )
+                  .join("")}
+              </fieldset>
+            `,
+          )
+          .join("")}
+      </div>
+      <button
+        class="button button-primary workflow-install-button"
+        type="button"
+        data-install-workflow="${escapeText(workflow.id)}"
+        ${controlsDisabled ? "disabled" : ""}
+      >
+        INSTALL SELECTED <span aria-hidden="true">&rarr;</span>
+      </button>
+    </div>
+  `;
+}
+
 function renderWorkflows(isBusy = false) {
   elements.grid.innerHTML = workflows
     .map((workflow, index) => {
-      const disabled = workflow.disabled || (isBusy && workflow.id !== activeWorkflowId);
+      const disabled = workflow.disabled;
       const selected = workflow.id === activeWorkflowId;
+      const expanded = workflow.id === expandedWorkflowId;
+      const selection = selectedResources(workflow);
+      const selectedBytes = (workflow.resources || []).reduce(
+        (total, resource) => total + (selection.has(resource.id) ? Number(resource.size_bytes || 0) : 0),
+        0,
+      );
       return `
-        <button
-          class="workflow-card${selected ? " is-selected" : ""}${isBusy ? " is-busy" : ""}"
-          type="button"
+        <article
+          class="workflow-card${selected ? " is-selected" : ""}${expanded ? " is-expanded" : ""}${isBusy ? " is-busy" : ""}"
           data-workflow-id="${escapeText(workflow.id)}"
-          ${disabled ? "disabled" : ""}
-          aria-label="${escapeText(workflow.title)}"
         >
-          <span class="workflow-meta">
-            <span class="workflow-number">${String(index + 1).padStart(2, "0")}</span>
-            <span class="workflow-badge">${escapeText(workflow.badge || "READY")}</span>
-          </span>
-          <h3>${escapeText(workflow.title)}</h3>
-          <p class="workflow-description">${escapeText(workflow.description)}</p>
-          <span class="workflow-size">${escapeText(workflow.estimated_size || "")}</span>
-        </button>
+          <button
+            class="workflow-card-toggle"
+            type="button"
+            data-toggle-workflow="${escapeText(workflow.id)}"
+            aria-expanded="${expanded}"
+            ${disabled ? "disabled" : ""}
+          >
+            <span class="workflow-meta">
+              <span class="workflow-number">${String(index + 1).padStart(2, "0")}</span>
+              <span class="workflow-badge">${escapeText(workflow.badge || "READY")}</span>
+            </span>
+            <h3>${escapeText(workflow.title)}</h3>
+            <p class="workflow-description">${escapeText(workflow.description)}</p>
+            <span class="workflow-card-footer">
+              <span class="workflow-size">${escapeText(formatBytes(selectedBytes) || workflow.estimated_size || "")}</span>
+              <span class="workflow-expand-label">${expanded ? "HIDE OPTIONS" : "CHOOSE RESOURCES"}</span>
+            </span>
+          </button>
+          ${expanded ? resourcePanel(workflow, isBusy) : ""}
+        </article>
       `;
     })
     .join("");
 
-  elements.grid.querySelectorAll("[data-workflow-id]").forEach((card) => {
-    card.addEventListener("click", () => startWorkflow(card.dataset.workflowId));
+  elements.grid.querySelectorAll("[data-toggle-workflow]").forEach((button) => {
+    button.addEventListener("click", () => {
+      expandedWorkflowId = expandedWorkflowId === button.dataset.toggleWorkflow
+        ? null
+        : button.dataset.toggleWorkflow;
+      renderWorkflows(isBusy);
+    });
+  });
+  elements.grid.querySelectorAll("[data-workflow-resource]").forEach((input) => {
+    input.addEventListener("change", () => {
+      const selection = workflowSelections.get(input.dataset.workflowResource);
+      if (input.checked) selection.add(input.dataset.resourceId);
+      else selection.delete(input.dataset.resourceId);
+      renderWorkflows(isBusy);
+    });
+  });
+  elements.grid.querySelectorAll("[data-select-all]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const workflow = workflows.find((item) => item.id === button.dataset.selectAll);
+      workflowSelections.set(workflow.id, new Set((workflow.resources || []).map((item) => item.id)));
+      renderWorkflows(isBusy);
+    });
+  });
+  elements.grid.querySelectorAll("[data-select-none]").forEach((button) => {
+    button.addEventListener("click", () => {
+      workflowSelections.set(button.dataset.selectNone, new Set());
+      renderWorkflows(isBusy);
+    });
+  });
+  elements.grid.querySelectorAll("[data-install-workflow]").forEach((button) => {
+    button.addEventListener("click", () => startWorkflow(button.dataset.installWorkflow));
   });
 }
 
@@ -154,6 +292,9 @@ async function startWorkflow(workflowId) {
     renderWorkflows(true);
     const status = await fetchJson(`/api/install/${encodeURIComponent(workflowId)}`, {
       method: "POST",
+      body: JSON.stringify({
+        selected_resources: [...(workflowSelections.get(workflowId) || [])],
+      }),
     });
     updatePanel(status);
     beginPolling();

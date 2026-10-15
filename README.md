@@ -18,6 +18,7 @@ Supervisor, JupyterLab, ComfyUI, authentication, logs, and `/workspace` layout.
 The image keeps the fast Hugging Face CLI/Xet downloader, resumable downloads,
 live progress, declarative workflow catalog, custom-model queue, custom-node
 installer, dependency warming, and diagnostics from the original launcher.
+Workflow tiles expand into per-resource checkboxes with live selected-size totals.
 
 ## Vast.ai template
 
@@ -77,7 +78,7 @@ ComfyUI service on `127.0.0.1:18188`.
 
 The catalog contains five installers:
 
-- Krea 2 Extended (approximately 79.4 GB)
+- Krea 2 Extended (approximately 84.9 GB with every optional resource selected)
 - Image Edit (approximately 17.8 GB)
 - WAN Motion Control (approximately 45.4 GB)
 - Motion Control GOD Edition (approximately 61.3 GB)
@@ -86,6 +87,20 @@ The catalog contains five installers:
 Each preset installs its models and custom nodes. An individual failure is
 reported as a warning while remaining items continue. Product workflow JSON
 files are deliberately not included.
+
+Resources are grouped from their destination folder (diffusion models, LoRAs,
+VAEs, text encoders, upscale models and support resources). Existing entries
+are selected by default. Set `"default_selected": false` on a catalog file only
+when it should be offered but not preselected. A resource belongs only to the
+workflow entries that contain it, so architecture-specific additions must be
+placed only in compatible pipelines. Download URLs and authentication data
+remain server-side.
+
+Krea 2 Raw is available in the Krea tile but is intentionally not preselected.
+The four `simbo926/rmdl` LoRAs are hosted in a gated repository and therefore
+require `HF_TOKEN`. The Apache-2.0 NiceGirls and KNP resources are mirrored with
+upstream attribution at `simbo926/dsnn-krea2-resources`; other public additions
+continue to use their revision-pinned original sources.
 
 Some custom nodes expect a model inside their own directory. Catalog
 `model_links` place the already-downloaded model at that private path with a

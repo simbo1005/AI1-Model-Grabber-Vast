@@ -413,35 +413,30 @@ h1 {
 
 .workflow-card {
   position: relative;
-  display: flex;
   min-height: 190px;
-  flex-direction: column;
-  padding: 20px;
   border: 1px solid var(--line);
   border-radius: 9px;
   background: var(--surface);
   color: var(--text);
-  cursor: pointer;
   text-align: left;
   transition:
     border-color 140ms ease,
     background-color 140ms ease;
+  overflow: hidden;
 }
 
-.workflow-card:hover:not(:disabled),
-.workflow-card:focus-visible:not(:disabled) {
+.workflow-card:hover,
+.workflow-card:focus-within {
   border-color: var(--line-strong);
   background: var(--surface-raised);
-  outline: none;
 }
 
-.workflow-card:focus-visible:not(:disabled) {
+.workflow-card:focus-within {
   box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
 }
 
-.workflow-card:disabled {
-  cursor: not-allowed;
-  opacity: 0.46;
+.workflow-card.is-expanded {
+  grid-column: 1 / -1;
 }
 
 .workflow-card.is-busy:not(.is-selected) {
@@ -451,6 +446,30 @@ h1 {
 .workflow-card.is-selected {
   border-color: var(--accent);
   background: var(--surface-selected);
+}
+
+.workflow-card-toggle {
+  display: flex;
+  width: 100%;
+  min-height: 188px;
+  flex-direction: column;
+  padding: 20px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.workflow-card-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
+.workflow-card-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -3px;
 }
 
 .workflow-meta {
@@ -479,12 +498,12 @@ h1 {
   color: var(--muted-strong);
 }
 
-.workflow-card:not(:disabled) .workflow-badge {
+.workflow-card-toggle:not(:disabled) .workflow-badge {
   border-color: rgba(82, 113, 255, 0.48);
   color: #8398ff;
 }
 
-.workflow-card h3 {
+.workflow-card-toggle h3 {
   margin: 0 0 8px;
   font-size: 1rem;
   font-weight: 650;
@@ -499,10 +518,118 @@ h1 {
 }
 
 .workflow-size {
-  margin-top: auto;
   color: var(--muted-strong);
   font-size: 0.7rem;
   font-weight: 550;
+}
+
+.workflow-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.workflow-expand-label {
+  color: #8398ff;
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+}
+
+.workflow-resource-panel {
+  padding: 0 20px 20px;
+  border-top: 1px solid var(--line);
+}
+
+.resource-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  color: var(--muted-strong);
+  font-size: 0.72rem;
+}
+
+.resource-toolbar-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.resource-toolbar-actions button {
+  padding: 5px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted-strong);
+  cursor: pointer;
+  font-size: 0.58rem;
+  font-weight: 750;
+}
+
+.resource-toolbar-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.resource-groups {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.resource-group {
+  min-width: 0;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+
+.resource-group legend {
+  padding: 0 6px;
+  color: #8398ff;
+  font-size: 0.65rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.resource-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 7px 2px;
+  cursor: pointer;
+}
+
+.resource-option input {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  accent-color: var(--accent);
+}
+
+.resource-option-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--text);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.resource-option-copy small {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 0.62rem;
+}
+
+.workflow-install-button {
+  margin-top: 16px;
 }
 
 .job-panel {
@@ -682,6 +809,10 @@ h1 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .resource-groups {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .model-draft-row {
     grid-template-columns: 1fr;
   }
@@ -745,6 +876,15 @@ h1 {
 
   .workflow-grid {
     grid-template-columns: 1fr;
+  }
+
+  .resource-groups {
+    grid-template-columns: 1fr;
+  }
+
+  .resource-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .workflow-card {

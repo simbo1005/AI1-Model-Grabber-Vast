@@ -4,10 +4,10 @@
     {
       "id": "krea-2-extended",
       "title": "Krea 2 Extended",
-      "description": "Install the complete verified Krea 2 workflow stack: FP8 and BF16 models, text encoders, 17 LoRAs, three VAEs, two upscalers, detection and ControlNet preprocessor models, and 15 supporting custom-node packs.",
+      "description": "Install the complete verified Krea 2 workflow stack: selectable FP8 and BF16 models, text encoders, 25 LoRAs, three VAEs, two upscalers, detection and ControlNet preprocessor models, and 15 supporting custom-node packs.",
       "badge": "READY",
       "accent": "#5271ff",
-      "estimated_size": "Approx. 79.4 GB",
+      "estimated_size": "Approx. 84.9 GB",
       "files": [
         {
           "name": "Krea 2 Turbo FP8",
@@ -25,7 +25,8 @@
           "size_bytes": 13141730784,
           "sha256": "48cd5d6c100297968349b41a8e77c6591d1dac18a215807f5f25f59e5c54cd61",
           "auth": "none",
-          "parallel": true
+          "parallel": true,
+          "default_selected": false
         },
         {
           "name": "Krea 2 Turbo Rank 64 LoRA",
@@ -87,6 +88,78 @@
           "destination": "models/loras/famegrid_spicy.safetensors",
           "size_bytes": 1562410408,
           "sha256": "7b4a37a9b9ec3885bf39242f2d4f691f186d959cbaaa30b0630e4631767b425e",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "NiceGirls Krea 2 LoRA (step 6000)",
+          "url": "https://huggingface.co/simbo926/dsnn-krea2-resources/resolve/f5f37748fac6ca8f007211afd1932cf3acd99828/nicegirls_krea2_000006000.safetensors",
+          "destination": "models/loras/nicegirls_krea2_000006000.safetensors",
+          "size_bytes": 114324736,
+          "sha256": "25847a032823dbd634e5b9f79866319b174557bce753367e4a08fddfea7eb57b",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "Realism Engine Krea 2 v3.1 LoRA",
+          "url": "https://huggingface.co/RazzzHF/realism_engine_krea2/resolve/3abdbd76528f79cc730a352bc7137a650d15858d/realism_engine_krea2_v3.1.safetensors",
+          "destination": "models/loras/realism_engine_krea2_v3.1.safetensors",
+          "size_bytes": 1562410296,
+          "sha256": "a6712629445a2e91a616568e82befa8c8c7518e891a0f7c9918138634b5b54a5",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "Realism Engine Krea 2 v2 LoRA",
+          "url": "https://huggingface.co/RazzzHF/realism_engine_krea2/resolve/e21452b6e2745330e2b603e91e0cb78d14415911/realism_engine_krea2_v2.safetensors",
+          "destination": "models/loras/realism_engine_krea2_v2.safetensors",
+          "size_bytes": 1562410296,
+          "sha256": "1815c6ac01216ad62f8dd17edab7c1fd31edf16c1b11434317123bae60e33257",
+          "auth": "none",
+          "parallel": true
+        },
+        {
+          "name": "r0mdl Krea 2 LoRA",
+          "url": "https://huggingface.co/simbo926/rmdl/resolve/2e12d333cda2b48dad44ad88b197541454cac780/r0mdl.safetensors",
+          "destination": "models/loras/r0mdl.safetensors",
+          "size_bytes": 457112016,
+          "sha256": "27634ec8fcb6a3e8840e5e777bc7597b3da4472728f49b985aa6669e012daa21",
+          "auth": "huggingface",
+          "parallel": true
+        },
+        {
+          "name": "r0mdl Krea 2 LoRA (step 2250)",
+          "url": "https://huggingface.co/simbo926/rmdl/resolve/2e12d333cda2b48dad44ad88b197541454cac780/r0mdl_000002250.safetensors",
+          "destination": "models/loras/r0mdl_000002250.safetensors",
+          "size_bytes": 457112016,
+          "sha256": "b9ed3c518f33b3ed667ac30dbf8dfbc4c406c68aeb14103f0cc45abd3b1b2cbe",
+          "auth": "huggingface",
+          "parallel": true
+        },
+        {
+          "name": "r0mdl Krea 2 LoRA (step 2500)",
+          "url": "https://huggingface.co/simbo926/rmdl/resolve/2e12d333cda2b48dad44ad88b197541454cac780/r0mdl_000002500.safetensors",
+          "destination": "models/loras/r0mdl_000002500.safetensors",
+          "size_bytes": 457112016,
+          "sha256": "6cbf64366093b8741c840ae02b99ebd50499dde7932a61b2ce2586cf78c86dee",
+          "auth": "huggingface",
+          "parallel": true
+        },
+        {
+          "name": "r0mdl Krea 2 LoRA (step 2750)",
+          "url": "https://huggingface.co/simbo926/rmdl/resolve/2e12d333cda2b48dad44ad88b197541454cac780/r0mdl_000002750.safetensors",
+          "destination": "models/loras/r0mdl_000002750.safetensors",
+          "size_bytes": 457112016,
+          "sha256": "90f059102291bacf2b8760f87180b2c39178e8c34f20b279c445ba5c6bfabb17",
+          "auth": "huggingface",
+          "parallel": true
+        },
+        {
+          "name": "KNP Krea 2 NSFW v4 LoRA",
+          "url": "https://huggingface.co/simbo926/dsnn-krea2-resources/resolve/f5f37748fac6ca8f007211afd1932cf3acd99828/KNP_000003000.safetensors",
+          "destination": "models/loras/KNP_000003000.safetensors",
+          "size_bytes": 457111960,
+          "sha256": "6ec564e04eed317ae24093b4907004ac59a7c528d19d025bb41b4d719c4d16ec",
           "auth": "none",
           "parallel": true
         },

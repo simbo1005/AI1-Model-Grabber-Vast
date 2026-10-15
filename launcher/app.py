@@ -82,6 +82,10 @@ class ProcessTimedOut(RuntimeError):
     """A bounded installer subprocess did not finish in time."""
 
 
+class WorkflowInstallRequest(BaseModel):
+    selected_resources: list[str] | None = None
+
+
 COMFYUI_UPSTREAM = "https://github.com/Comfy-Org/ComfyUI.git"
 _COMMIT_SHA = re.compile(r"[0-9a-f]{40}")
 _NETWORK_FAILURE_MARKERS = (
@@ -455,13 +459,77 @@ def public_catalog() -> dict[str, Any]:
         "estimated_size",
         "disabled",
     }
+    category_labels = {
+        "diffusion_models": "Diffusion models",
+        "checkpoints": "Checkpoints",
+        "loras": "LoRAs",
+        "upscale_models": "Upscale models",
+        "vae": "VAEs",
+        "text_encoders": "Text encoders",
+        "clip_vision": "CLIP vision",
+        "controlnet": "ControlNet models",
+        "sams": "SAM models",
+        "annotators": "Preprocessor models",
+        "ultralytics": "Detection models",
+        "detection": "Detection models",
+        "frame_interpolation": "Frame interpolation",
+    }
+
+    def public_resource(file_spec: dict[str, Any]) -> dict[str, Any]:
+        destination = str(file_spec.get("destination", ""))
+        parts = PurePosixPath(destination).parts
+        category = parts[1] if len(parts) > 2 and parts[0] == "models" else "other"
+        return {
+            "id": destination,
+            "name": str(file_spec.get("name") or PurePosixPath(destination).name),
+            "category": category,
+            "category_label": category_labels.get(category, "Supporting resources"),
+            "size_bytes": max(0, int(file_spec.get("size_bytes", 0))),
+            "selected_by_default": file_spec.get("default_selected", True) is not False,
+        }
+
+    workflows = []
+    for workflow in catalog["workflows"]:
+        public_workflow = {key: value for key, value in workflow.items() if key in allowed}
+        public_workflow["resources"] = [
+            public_resource(file_spec) for file_spec in workflow.get("files", [])
+        ]
+        workflows.append(public_workflow)
+
     return {
         "version": catalog.get("version", 1),
-        "workflows": [
-            {key: value for key, value in workflow.items() if key in allowed}
-            for workflow in catalog["workflows"]
-        ],
+        "workflows": workflows,
     }
+
+
+def workflow_with_selected_resources(
+    workflow: dict[str, Any], selected_resources: list[str] | None
+) -> dict[str, Any]:
+    """Return an install plan containing only the resources selected in the UI."""
+    files = workflow.get("files", [])
+    available = {str(item.get("destination", "")): item for item in files}
+    if selected_resources is None:
+        selected = {
+            destination
+            for destination, item in available.items()
+            if item.get("default_selected", True) is not False
+        }
+    else:
+        selected = set(selected_resources)
+        unknown = sorted(selected - available.keys())
+        if unknown:
+            raise HTTPException(status_code=400, detail="Unknown workflow resource selected.")
+
+    plan = dict(workflow)
+    plan["files"] = [
+        item for item in files if str(item.get("destination", "")) in selected
+    ]
+    plan["model_links"] = [
+        link
+        for link in workflow.get("model_links", [])
+        if str(link.get("source", "")) in selected
+    ]
+    return plan
 
 
 def vast_public_url(internal_port: int) -> str:
@@ -2149,7 +2217,7 @@ custom_model_controller = CustomModelController()
 custom_node_controller = CustomNodeController()
 app = FastAPI(
     title="dsnn Model Grabber",
-    version="1.4.0",
+    version="1.5.0",
     docs_url=None,
     redoc_url=None,
 )
@@ -2198,7 +2266,9 @@ async def diagnostics_report() -> str:
 
 
 @app.post("/api/install/{workflow_id}")
-async def install(workflow_id: str) -> dict[str, Any]:
+async def install(
+    workflow_id: str, request: WorkflowInstallRequest | None = None
+) -> dict[str, Any]:
     catalog_data = load_catalog()
     workflow = next(
         (item for item in catalog_data["workflows"] if item["id"] == workflow_id),
@@ -2206,7 +2276,8 @@ async def install(workflow_id: str) -> dict[str, Any]:
     )
     if not workflow:
         raise HTTPException(status_code=404, detail="Workflow not found.")
-    return await controller.start(workflow)
+    selected = request.selected_resources if request else None
+    return await controller.start(workflow_with_selected_resources(workflow, selected))
 
 
 @app.post("/api/cancel")
