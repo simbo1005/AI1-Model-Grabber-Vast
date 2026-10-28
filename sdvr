@@ -1,5 +1,599 @@
-cd /workspace/ComfyUI/custom_nodes && \
-git clone --depth 1 https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler.git && \
-/venv/main/bin/python -m pip freeze | \
-grep -iE '^(torch|torchvision|torchaudio|torchcodec)==' \
-> /tmp/dsnn-seedvr-constraints.txt
+Node threw an error during execution.
+
+
+# ComfyUI Error Report
+## Error Details
+- **Node ID:** 1590
+- **Node Type:** 10SORRegenerationGate
+- **Exception Type:** /workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate.storage.ImageNotInitializedError
+- **Exception Message:** /workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate.storage.ImageNotInitializedError: 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+
+## Stack Trace
+```
+  File "/workspace/ComfyUI/execution.py", line 548, in execute
+    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  File "/workspace/ComfyUI/execution.py", line 353, in get_output_data
+    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  File "/workspace/ComfyUI/execution.py", line 327, in _async_map_node_over_list
+    await process_inputs(input_dict, i)
+
+  File "/workspace/ComfyUI/execution.py", line 315, in process_inputs
+    result = f(**inputs)
+             ^^^^^^^^^^^
+
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/regeneration_gate.py", line 106, in execute
+    return (self.store.load(session_id, slot_id),)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/storage.py", line 173, in load
+    raise ImageNotInitializedError(
+
+```
+## System Information
+- **ComfyUI Version:** 0.43.0
+- **Arguments:** main.py --disable-auto-launch --disable-xformers --port 18188 --enable-cors-header
+- **OS:** linux
+- **Python Version:** 3.12.14 | packaged by conda-forge | (main, Aug 21 2026, 22:48:28) [GCC 14.4.0]
+- **Embedded Python:** false
+- **PyTorch Version:** 2.10.0+cu128
+## Devices
+
+- **Name:** cuda:0 NVIDIA GeForce RTX 5090 : cudaMallocAsync
+  - **Type:** cuda
+  - **VRAM Total:** 33670758400
+  - **VRAM Free:** 33046528000
+  - **Torch VRAM Total:** 33554432
+  - **Torch VRAM Free:** 25034752
+
+## Logs
+```
+2026-10-28T22:36:59.097173 - [1m[33m[WARNING][0m lora key not loaded: diffusion_model.transformer_blocks.31.img_mlp.gate_up.lora_B.weight
+2026-10-28T22:36:59.097205 - [1m[33m[WARNING][0m lora key not loaded: diffusion_model.transformer_blocks.4.img_mlp.gate_up.lora_A.weight
+2026-10-28T22:36:59.097237 - [1m[33m[WARNING][0m lora key not loaded: diffusion_model.transformer_blocks.4.img_mlp.gate_up.lora_B.weight
+2026-10-28T22:36:59.097268 - [1m[33m[WARNING][0m lora key not loaded: diffusion_model.transformer_blocks.5.img_mlp.gate_up.lora_A.weight
+2026-10-28T22:36:59.097319 - [1m[33m[WARNING][0m lora key not loaded: diffusion_model.transformer_blocks.5.img_mlp.gate_up.lora_B.weight
+2026-10-28T22:36:59.097353 - [1m[33m[WARNING][0m lora key not loaded: diffusion_model.transformer_blocks.6.img_mlp.gate_up.lora_A.weight
+2026-10-28T22:36:59.097385 - [1m[33m[WARNING][0m lora key not loaded: diffusion_model.transformer_blocks.6.img_mlp.gate_up.lora_B.weight
+2026-10-28T22:36:59.097418 - [1m[33m[WARNING][0m lora key not loaded: diffusion_model.transformer_blocks.7.img_mlp.gate_up.lora_A.weight
+2026-10-28T22:36:59.097449 - [1m[33m[WARNING][0m lora key not loaded: diffusion_model.transformer_blocks.7.img_mlp.gate_up.lora_B.weight
+2026-10-28T22:36:59.097482 - [1m[33m[WARNING][0m lora key not loaded: diffusion_model.transformer_blocks.8.img_mlp.gate_up.lora_A.weight
+2026-10-28T22:36:59.097514 - [1m[33m[WARNING][0m lora key not loaded: diffusion_model.transformer_blocks.8.img_mlp.gate_up.lora_B.weight
+2026-10-28T22:36:59.097547 - [1m[33m[WARNING][0m lora key not loaded: diffusion_model.transformer_blocks.9.img_mlp.gate_up.lora_A.weight
+2026-10-28T22:36:59.097578 - [1m[33m[WARNING][0m lora key not loaded: diffusion_model.transformer_blocks.9.img_mlp.gate_up.lora_B.weight
+2026-10-28T22:36:59.119768 - [32m[INFO][0m Requested to load QwenImage21
+2026-10-28T22:36:59.158761 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T22:36:59.165326 - [32m[INFO][0m Requested to load KVCacheModel
+2026-10-28T22:36:59.201746 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T22:36:59.205789 - [32m[INFO][0m Model KVCacheModel prepared for dynamic VRAM loading. 12228MB Staged. 0 patches attached.
+2026-10-28T22:37:08.757891 - 2026-10-28T22:37:08.758438 - 
+2026-10-28T22:37:08.780616 - [32m[INFO][0m Comfy model compiler graph breaks: 0, rogues: 0
+2026-10-28T22:37:08.897095 - [32m[INFO][0m Model WanVAE prepared for dynamic VRAM loading. 644MB Staged. 0 patches attached. Force pre-loaded 68 weights: 102 KB.
+2026-10-28T22:37:10.742473 - [32m[INFO][0m Model WanVAE prepared for dynamic VRAM loading. 644MB Staged. 0 patches attached. Force pre-loaded 68 weights: 102 KB.
+2026-10-28T22:37:11.036207 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:37:13.655787 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:37:16.040095 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T22:37:16.047691 - [32m[INFO][0m Requested to load KVCacheModel
+2026-10-28T22:37:16.084053 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T22:37:16.088190 - [32m[INFO][0m Model KVCacheModel prepared for dynamic VRAM loading. 12230MB Staged. 0 patches attached.
+2026-10-28T22:37:23.284074 - 2026-10-28T22:37:23.284123 - 
+2026-10-28T22:37:23.295256 - [32m[INFO][0m Comfy model compiler graph breaks: 0, rogues: 0
+2026-10-28T22:37:23.359646 - [32m[INFO][0m Model WanVAE prepared for dynamic VRAM loading. 644MB Staged. 0 patches attached. Force pre-loaded 68 weights: 102 KB.
+2026-10-28T22:37:23.952187 - [32m[INFO][0m Model WanVAE prepared for dynamic VRAM loading. 644MB Staged. 0 patches attached. Force pre-loaded 68 weights: 102 KB.
+2026-10-28T22:37:24.232710 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:37:26.655630 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:37:29.050126 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T22:37:29.056831 - [32m[INFO][0m Requested to load KVCacheModel
+2026-10-28T22:37:29.093167 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T22:37:29.097237 - [32m[INFO][0m Model KVCacheModel prepared for dynamic VRAM loading. 12224MB Staged. 0 patches attached.
+2026-10-28T22:37:36.247938 - 2026-10-28T22:37:36.247987 - 
+2026-10-28T22:37:36.259837 - [32m[INFO][0m Comfy model compiler graph breaks: 0, rogues: 0
+2026-10-28T22:37:36.331125 - [32m[INFO][0m Model WanVAE prepared for dynamic VRAM loading. 644MB Staged. 0 patches attached. Force pre-loaded 68 weights: 102 KB.
+2026-10-28T22:37:36.939817 - [32m[INFO][0m Model WanVAE prepared for dynamic VRAM loading. 644MB Staged. 0 patches attached. Force pre-loaded 68 weights: 102 KB.
+2026-10-28T22:37:37.157226 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:37:39.664186 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:37:41.981256 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T22:37:41.994281 - [32m[INFO][0m Requested to load KVCacheModel
+2026-10-28T22:37:42.031123 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T22:37:42.035405 - [32m[INFO][0m Model KVCacheModel prepared for dynamic VRAM loading. 12226MB Staged. 0 patches attached.
+2026-10-28T22:37:49.281808 - 2026-10-28T22:37:49.281857 - 
+2026-10-28T22:37:49.293459 - [32m[INFO][0m Comfy model compiler graph breaks: 0, rogues: 0
+2026-10-28T22:37:49.357015 - [32m[INFO][0m Model WanVAE prepared for dynamic VRAM loading. 644MB Staged. 0 patches attached. Force pre-loaded 68 weights: 102 KB.
+2026-10-28T22:37:49.870654 - [1m[31m[ERROR][0m !!! Exception during processing !!! 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+2026-10-28T22:37:49.871691 - [1m[31m[ERROR][0m Traceback (most recent call last):
+  File "/workspace/ComfyUI/execution.py", line 548, in execute
+    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 353, in get_output_data
+    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 327, in _async_map_node_over_list
+    await process_inputs(input_dict, i)
+  File "/workspace/ComfyUI/execution.py", line 315, in process_inputs
+    result = f(**inputs)
+             ^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/regeneration_gate.py", line 106, in execute
+    return (self.store.load(session_id, slot_id),)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/storage.py", line 173, in load
+    raise ImageNotInitializedError(
+/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate.storage.ImageNotInitializedError: 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+
+2026-10-28T22:37:49.872923 - [32m[INFO][0m [32mPrompt executed in 94.85 seconds[0m
+2026-10-28T22:46:26.247656 - [32m[INFO][0m got prompt
+2026-10-28T22:46:26.334932 - [1m[31m[ERROR][0m Failed to validate prompt for output 1120:
+2026-10-28T22:46:26.335089 - [1m[31m[ERROR][0m * 10SORRegenerationGate 1465:
+2026-10-28T22:46:26.335149 - [1m[31m[ERROR][0m   - Required input is missing: fresh_image
+2026-10-28T22:46:26.335206 - [1m[31m[ERROR][0m * 10SORRegenerationGate 1590:
+2026-10-28T22:46:26.335252 - [1m[31m[ERROR][0m   - Required input is missing: fresh_image
+2026-10-28T22:46:26.335321 - [1m[31m[ERROR][0m * 10SORRegenerationGate 1519:
+2026-10-28T22:46:26.335371 - [1m[31m[ERROR][0m   - Required input is missing: fresh_image
+2026-10-28T22:46:26.335416 - [1m[31m[ERROR][0m Output will be ignored
+2026-10-28T22:46:26.467876 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:46:36.337326 - 2026-10-28T22:46:36.337383 - 
+2026-10-28T22:46:36.342625 - [32m[INFO][0m Comfy model compiler graph breaks: 0, rogues: 0
+2026-10-28T22:46:36.429968 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:46:44.641949 - 2026-10-28T22:46:44.642006 - 
+2026-10-28T22:46:44.645943 - [32m[INFO][0m Comfy model compiler graph breaks: 0, rogues: 0
+2026-10-28T22:46:44.851132 - [32m[INFO][0m Model WanVAE prepared for dynamic VRAM loading. 644MB Staged. 0 patches attached. Force pre-loaded 68 weights: 102 KB.
+2026-10-28T22:46:45.148624 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:46:47.574161 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:46:49.982315 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T22:46:50.133660 - [32m[INFO][0m Requested to load KVCacheModel
+2026-10-28T22:46:50.182799 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T22:46:50.189440 - [32m[INFO][0m Model KVCacheModel prepared for dynamic VRAM loading. 12231MB Staged. 0 patches attached.
+2026-10-28T22:46:57.399570 - 2026-10-28T22:46:57.399620 - 
+2026-10-28T22:46:57.412882 - [32m[INFO][0m Comfy model compiler graph breaks: 0, rogues: 0
+2026-10-28T22:46:57.480028 - [32m[INFO][0m Model WanVAE prepared for dynamic VRAM loading. 644MB Staged. 0 patches attached. Force pre-loaded 68 weights: 102 KB.
+2026-10-28T22:46:58.083596 - [32m[INFO][0m Model WanVAE prepared for dynamic VRAM loading. 644MB Staged. 0 patches attached. Force pre-loaded 68 weights: 102 KB.
+2026-10-28T22:46:58.342442 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:47:00.785365 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:47:03.587930 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T22:47:03.615015 - [32m[INFO][0m Requested to load KVCacheModel
+2026-10-28T22:47:03.670344 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T22:47:03.676212 - [32m[INFO][0m Model KVCacheModel prepared for dynamic VRAM loading. 12228MB Staged. 0 patches attached.
+2026-10-28T22:47:11.007283 - 2026-10-28T22:47:11.007336 - 
+2026-10-28T22:47:11.018364 - [32m[INFO][0m Comfy model compiler graph breaks: 0, rogues: 0
+2026-10-28T22:47:11.079777 - [32m[INFO][0m Model WanVAE prepared for dynamic VRAM loading. 644MB Staged. 0 patches attached. Force pre-loaded 68 weights: 102 KB.
+2026-10-28T22:47:11.735300 - [32m[INFO][0m Model WanVAE prepared for dynamic VRAM loading. 644MB Staged. 0 patches attached. Force pre-loaded 68 weights: 102 KB.
+2026-10-28T22:47:11.959714 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:47:14.367180 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:47:16.878466 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T22:47:16.894987 - [32m[INFO][0m Requested to load KVCacheModel
+2026-10-28T22:47:16.964304 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T22:47:16.968917 - [32m[INFO][0m Model KVCacheModel prepared for dynamic VRAM loading. 12232MB Staged. 0 patches attached.
+2026-10-28T22:47:24.194940 - 2026-10-28T22:47:24.194991 - 
+2026-10-28T22:47:24.208161 - [32m[INFO][0m Comfy model compiler graph breaks: 0, rogues: 0
+2026-10-28T22:47:24.270507 - [32m[INFO][0m Model WanVAE prepared for dynamic VRAM loading. 644MB Staged. 0 patches attached. Force pre-loaded 68 weights: 102 KB.
+2026-10-28T22:47:24.876600 - [32m[INFO][0m Model WanVAE prepared for dynamic VRAM loading. 644MB Staged. 0 patches attached. Force pre-loaded 68 weights: 102 KB.
+2026-10-28T22:47:25.305880 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:47:27.661384 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:47:30.081339 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T22:47:30.133563 - [32m[INFO][0m Requested to load KVCacheModel
+2026-10-28T22:47:30.172968 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T22:47:30.177116 - [32m[INFO][0m Model KVCacheModel prepared for dynamic VRAM loading. 12231MB Staged. 0 patches attached.
+2026-10-28T22:47:37.347457 - 2026-10-28T22:47:37.347511 - 
+2026-10-28T22:47:37.359191 - [32m[INFO][0m Comfy model compiler graph breaks: 0, rogues: 0
+2026-10-28T22:47:37.432257 - [32m[INFO][0m Model WanVAE prepared for dynamic VRAM loading. 644MB Staged. 0 patches attached. Force pre-loaded 68 weights: 102 KB.
+2026-10-28T22:47:37.935265 - [32m[INFO][0m [32mPrompt executed in 71.58 seconds[0m
+2026-10-28T22:49:38.523888 - [32m[INFO][0m got prompt
+2026-10-28T22:49:40.431738 - [1m[31m[ERROR][0m !!! Exception during processing !!! 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+2026-10-28T22:49:40.432428 - [1m[31m[ERROR][0m Traceback (most recent call last):
+  File "/workspace/ComfyUI/execution.py", line 548, in execute
+    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 353, in get_output_data
+    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 327, in _async_map_node_over_list
+    await process_inputs(input_dict, i)
+  File "/workspace/ComfyUI/execution.py", line 315, in process_inputs
+    result = f(**inputs)
+             ^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/regeneration_gate.py", line 106, in execute
+    return (self.store.load(session_id, slot_id),)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/storage.py", line 173, in load
+    raise ImageNotInitializedError(
+/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate.storage.ImageNotInitializedError: 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+
+2026-10-28T22:49:40.433452 - [32m[INFO][0m [32mPrompt executed in 1.81 seconds[0m
+2026-10-28T22:52:04.655988 - [32m[INFO][0m got prompt
+2026-10-28T22:52:04.847985 - [1m[31m[ERROR][0m !!! Exception during processing !!! 10SOR Regeneration Gate session 'carousel-001', slot '4' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+2026-10-28T22:52:04.848740 - [1m[31m[ERROR][0m Traceback (most recent call last):
+  File "/workspace/ComfyUI/execution.py", line 548, in execute
+    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 353, in get_output_data
+    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 327, in _async_map_node_over_list
+    await process_inputs(input_dict, i)
+  File "/workspace/ComfyUI/execution.py", line 315, in process_inputs
+    result = f(**inputs)
+             ^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/regeneration_gate.py", line 106, in execute
+    return (self.store.load(session_id, slot_id),)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/storage.py", line 173, in load
+    raise ImageNotInitializedError(
+/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate.storage.ImageNotInitializedError: 10SOR Regeneration Gate session 'carousel-001', slot '4' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+
+2026-10-28T22:52:04.849685 - [32m[INFO][0m [32mPrompt executed in 0.09 seconds[0m
+2026-10-28T22:52:31.912437 - [32m[INFO][0m got prompt
+2026-10-28T22:52:32.125094 - [1m[31m[ERROR][0m !!! Exception during processing !!! 10SOR Regeneration Gate session 'carousel-001', slot '4' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+2026-10-28T22:52:32.125709 - [1m[31m[ERROR][0m Traceback (most recent call last):
+  File "/workspace/ComfyUI/execution.py", line 548, in execute
+    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 353, in get_output_data
+    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 327, in _async_map_node_over_list
+    await process_inputs(input_dict, i)
+  File "/workspace/ComfyUI/execution.py", line 315, in process_inputs
+    result = f(**inputs)
+             ^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/regeneration_gate.py", line 106, in execute
+    return (self.store.load(session_id, slot_id),)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/storage.py", line 173, in load
+    raise ImageNotInitializedError(
+/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate.storage.ImageNotInitializedError: 10SOR Regeneration Gate session 'carousel-001', slot '4' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+
+2026-10-28T22:52:32.126693 - [32m[INFO][0m [32mPrompt executed in 0.08 seconds[0m
+2026-10-28T22:53:03.640979 - [32m[INFO][0m got prompt
+2026-10-28T22:53:03.837358 - [1m[31m[ERROR][0m !!! Exception during processing !!! 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+2026-10-28T22:53:03.838053 - [1m[31m[ERROR][0m Traceback (most recent call last):
+  File "/workspace/ComfyUI/execution.py", line 548, in execute
+    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 353, in get_output_data
+    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 327, in _async_map_node_over_list
+    await process_inputs(input_dict, i)
+  File "/workspace/ComfyUI/execution.py", line 315, in process_inputs
+    result = f(**inputs)
+             ^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/regeneration_gate.py", line 106, in execute
+    return (self.store.load(session_id, slot_id),)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/storage.py", line 173, in load
+    raise ImageNotInitializedError(
+/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate.storage.ImageNotInitializedError: 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+
+2026-10-28T22:53:03.839023 - [32m[INFO][0m [32mPrompt executed in 0.09 seconds[0m
+2026-10-28T22:53:33.826619 - [32m[INFO][0m got prompt
+2026-10-28T22:53:34.090124 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:54:00.192803 - 2026-10-28T22:54:00.192872 - 
+2026-10-28T22:54:00.201054 - [32m[INFO][0m Comfy model compiler graph breaks: 0, rogues: 0
+2026-10-28T22:54:00.400215 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:54:29.240002 - 2026-10-28T22:54:29.240058 - 
+2026-10-28T22:54:29.243953 - [32m[INFO][0m Comfy model compiler graph breaks: 0, rogues: 0
+2026-10-28T22:54:29.344598 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:54:55.186505 - 2026-10-28T22:54:55.186566 - 
+2026-10-28T22:54:55.190592 - [32m[INFO][0m Comfy model compiler graph breaks: 0, rogues: 0
+2026-10-28T22:54:56.750228 - [32m[INFO][0m Model WanVAE prepared for dynamic VRAM loading. 644MB Staged. 0 patches attached. Force pre-loaded 68 weights: 102 KB.
+2026-10-28T22:54:57.063110 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:54:59.847526 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T22:55:02.371470 - [32m[INFO][0m 0 models unloaded.
+2026-10-28T22:55:02.412379 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T22:55:02.427124 - [32m[INFO][0m Requested to load KVCacheModel
+2026-10-28T22:55:02.464087 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T22:55:02.468227 - [32m[INFO][0m Model KVCacheModel prepared for dynamic VRAM loading. 12422MB Staged. 0 patches attached.
+2026-10-28T22:57:08.816190 - [ComfyUI-Manager] The ComfyRegistry cache update is still in progress, so an outdated cache is being used.2026-10-28T22:57:08.816238 - 
+2026-10-28T22:57:08.913828 - FETCH DATA from: /workspace/ComfyUI/user/__manager/cache/1514988643_custom-node-list.json2026-10-28T22:57:08.913867 - 2026-10-28T22:57:08.924417 -  [DONE]2026-10-28T22:57:08.924448 - 
+2026-10-28T22:57:08.971179 - FETCH DATA from: /workspace/ComfyUI/user/__manager/cache/746607195_github-stats.json2026-10-28T22:57:08.971204 - 2026-10-28T22:57:08.978181 -  [DONE]2026-10-28T22:57:08.978211 - 
+2026-10-28T22:57:08.983041 - FETCH DATA from: /workspace/ComfyUI/user/__manager/cache/832903789_extras.json2026-10-28T22:57:08.983064 - 2026-10-28T22:57:08.983147 -  [DONE]2026-10-28T22:57:08.983167 - 
+2026-10-28T22:57:10.465568 - FETCH DATA from: /workspace/ComfyUI/user/__manager/cache/1742899825_extension-node-map.json2026-10-28T22:57:10.465613 - 2026-10-28T22:57:10.478048 -  [DONE]2026-10-28T22:57:10.478086 - 
+2026-10-28T23:06:30.486686 - 2026-10-28T23:06:30.486743 - 
+2026-10-28T23:06:30.762235 - [32m[INFO][0m Comfy model compiler graph breaks: 4, rogues: 0
+2026-10-28T23:06:30.997852 - [32m[INFO][0m 0 models unloaded.
+2026-10-28T23:06:31.018907 - [32m[INFO][0m Model WanVAE prepared for dynamic VRAM loading. 644MB Staged. 0 patches attached. Force pre-loaded 68 weights: 102 KB.
+2026-10-28T23:06:37.684403 - [1m[33m[WARNING][0m Warning: Ran out of memory when regular VAE decoding, retrying with tiled VAE decoding.
+2026-10-28T23:07:38.894099 - [32m[INFO][0m Model WanVAE prepared for dynamic VRAM loading. 644MB Staged. 0 patches attached. Force pre-loaded 68 weights: 102 KB.
+2026-10-28T23:07:39.141366 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T23:07:41.907902 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T23:07:44.384628 - [32m[INFO][0m 0 models unloaded.
+2026-10-28T23:07:44.423952 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T23:07:44.436976 - [32m[INFO][0m Requested to load KVCacheModel
+2026-10-28T23:07:44.474405 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T23:07:44.478556 - [32m[INFO][0m Model KVCacheModel prepared for dynamic VRAM loading. 12428MB Staged. 0 patches attached.
+2026-10-28T23:13:38.579378 - [32m[INFO][0m Interrupting prompt 208e8666-e44a-40bd-83c6-4969c180083b
+2026-10-28T23:13:40.506074 - 2026-10-28T23:13:40.506128 - 
+2026-10-28T23:13:48.729446 - [32m[INFO][0m Comfy model compiler graph breaks: 3, rogues: 2
+2026-10-28T23:13:48.808058 - [32m[INFO][0m Processing interrupted
+2026-10-28T23:13:48.809403 - [32m[INFO][0m [32mPrompt executed in 00:20:14[0m
+2026-10-28T23:14:01.861169 - [32m[INFO][0m got prompt
+2026-10-28T23:14:01.942728 - [1m[31m[ERROR][0m Failed to validate prompt for output 1120:
+2026-10-28T23:14:01.942951 - [1m[31m[ERROR][0m * 10SORRegenerationGate 1465:
+2026-10-28T23:14:01.943060 - [1m[31m[ERROR][0m   - Required input is missing: fresh_image
+2026-10-28T23:14:01.943158 - [1m[31m[ERROR][0m * 10SORRegenerationGate 1592:
+2026-10-28T23:14:01.943248 - [1m[31m[ERROR][0m   - Required input is missing: fresh_image
+2026-10-28T23:14:01.943363 - [1m[31m[ERROR][0m * 10SORRegenerationGate 1590:
+2026-10-28T23:14:01.943454 - [1m[31m[ERROR][0m   - Required input is missing: fresh_image
+2026-10-28T23:14:01.943543 - [1m[31m[ERROR][0m * 10SORRegenerationGate 1519:
+2026-10-28T23:14:01.943624 - [1m[31m[ERROR][0m   - Required input is missing: fresh_image
+2026-10-28T23:14:01.943709 - [1m[31m[ERROR][0m Output will be ignored
+2026-10-28T23:14:02.122194 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T23:14:29.865826 - 2026-10-28T23:14:29.865884 - 
+2026-10-28T23:14:29.868684 - [32m[INFO][0m Comfy model compiler graph breaks: 0, rogues: 0
+2026-10-28T23:14:29.987486 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T23:14:55.523080 - 2026-10-28T23:14:55.523133 - 
+2026-10-28T23:14:55.525298 - [32m[INFO][0m Comfy model compiler graph breaks: 0, rogues: 0
+2026-10-28T23:14:56.513739 - [32m[INFO][0m Model WanVAE prepared for dynamic VRAM loading. 644MB Staged. 0 patches attached. Force pre-loaded 68 weights: 102 KB.
+2026-10-28T23:14:56.730239 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T23:14:59.165188 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T23:15:01.662610 - [32m[INFO][0m 0 models unloaded.
+2026-10-28T23:15:01.703633 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T23:15:01.724644 - [32m[INFO][0m Requested to load KVCacheModel
+2026-10-28T23:15:01.761605 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T23:15:01.765724 - [32m[INFO][0m Model KVCacheModel prepared for dynamic VRAM loading. 12424MB Staged. 0 patches attached.
+2026-10-28T23:15:49.816844 - [32m[INFO][0m Interrupting prompt 69ed4912-9e05-4b01-aa92-ff839deb5d7c
+2026-10-28T23:15:51.566396 - [32m[INFO][0m Interrupting prompt 69ed4912-9e05-4b01-aa92-ff839deb5d7c
+2026-10-28T23:15:51.712480 - 2026-10-28T23:15:51.712543 - 
+2026-10-28T23:15:51.962724 - [32m[INFO][0m Comfy model compiler graph breaks: 0, rogues: 1
+2026-10-28T23:15:52.007716 - [32m[INFO][0m Processing interrupted
+2026-10-28T23:15:52.008574 - [32m[INFO][0m [32mPrompt executed in 110.05 seconds[0m
+2026-10-28T23:16:57.913785 - [32m[INFO][0m got prompt
+2026-10-28T23:16:58.353466 - [1m[31m[ERROR][0m !!! Exception during processing !!! 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+2026-10-28T23:16:58.354163 - [1m[31m[ERROR][0m Traceback (most recent call last):
+  File "/workspace/ComfyUI/execution.py", line 548, in execute
+    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 353, in get_output_data
+    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 327, in _async_map_node_over_list
+    await process_inputs(input_dict, i)
+  File "/workspace/ComfyUI/execution.py", line 315, in process_inputs
+    result = f(**inputs)
+             ^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/regeneration_gate.py", line 106, in execute
+    return (self.store.load(session_id, slot_id),)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/storage.py", line 173, in load
+    raise ImageNotInitializedError(
+/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate.storage.ImageNotInitializedError: 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+
+2026-10-28T23:16:58.355084 - [32m[INFO][0m [32mPrompt executed in 0.08 seconds[0m
+2026-10-28T23:17:26.304912 - [32m[INFO][0m got prompt
+2026-10-28T23:17:26.738577 - [1m[31m[ERROR][0m !!! Exception during processing !!! 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+2026-10-28T23:17:26.739372 - [1m[31m[ERROR][0m Traceback (most recent call last):
+  File "/workspace/ComfyUI/execution.py", line 548, in execute
+    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 353, in get_output_data
+    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 327, in _async_map_node_over_list
+    await process_inputs(input_dict, i)
+  File "/workspace/ComfyUI/execution.py", line 315, in process_inputs
+    result = f(**inputs)
+             ^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/regeneration_gate.py", line 106, in execute
+    return (self.store.load(session_id, slot_id),)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/storage.py", line 173, in load
+    raise ImageNotInitializedError(
+/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate.storage.ImageNotInitializedError: 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+
+2026-10-28T23:17:26.740469 - [32m[INFO][0m [32mPrompt executed in 0.08 seconds[0m
+2026-10-28T23:17:54.902494 - [32m[INFO][0m got prompt
+2026-10-28T23:17:55.071590 - [1m[31m[ERROR][0m !!! Exception during processing !!! 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+2026-10-28T23:17:55.072190 - [1m[31m[ERROR][0m Traceback (most recent call last):
+  File "/workspace/ComfyUI/execution.py", line 548, in execute
+    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 353, in get_output_data
+    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 327, in _async_map_node_over_list
+    await process_inputs(input_dict, i)
+  File "/workspace/ComfyUI/execution.py", line 315, in process_inputs
+    result = f(**inputs)
+             ^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/regeneration_gate.py", line 106, in execute
+    return (self.store.load(session_id, slot_id),)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/storage.py", line 173, in load
+    raise ImageNotInitializedError(
+/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate.storage.ImageNotInitializedError: 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+
+2026-10-28T23:17:55.073117 - [32m[INFO][0m [32mPrompt executed in 0.10 seconds[0m
+2026-10-28T23:18:12.418427 - [32m[INFO][0m got prompt
+2026-10-28T23:18:12.593498 - [1m[31m[ERROR][0m !!! Exception during processing !!! 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+2026-10-28T23:18:12.594198 - [1m[31m[ERROR][0m Traceback (most recent call last):
+  File "/workspace/ComfyUI/execution.py", line 548, in execute
+    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 353, in get_output_data
+    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 327, in _async_map_node_over_list
+    await process_inputs(input_dict, i)
+  File "/workspace/ComfyUI/execution.py", line 315, in process_inputs
+    result = f(**inputs)
+             ^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/regeneration_gate.py", line 106, in execute
+    return (self.store.load(session_id, slot_id),)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/storage.py", line 173, in load
+    raise ImageNotInitializedError(
+/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate.storage.ImageNotInitializedError: 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+
+2026-10-28T23:18:12.595397 - [32m[INFO][0m [32mPrompt executed in 0.10 seconds[0m
+2026-10-28T23:18:14.508439 - [32m[INFO][0m got prompt
+2026-10-28T23:18:14.674527 - [1m[31m[ERROR][0m !!! Exception during processing !!! 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+2026-10-28T23:18:14.675199 - [1m[31m[ERROR][0m Traceback (most recent call last):
+  File "/workspace/ComfyUI/execution.py", line 548, in execute
+    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 353, in get_output_data
+    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 327, in _async_map_node_over_list
+    await process_inputs(input_dict, i)
+  File "/workspace/ComfyUI/execution.py", line 315, in process_inputs
+    result = f(**inputs)
+             ^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/regeneration_gate.py", line 106, in execute
+    return (self.store.load(session_id, slot_id),)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/storage.py", line 173, in load
+    raise ImageNotInitializedError(
+/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate.storage.ImageNotInitializedError: 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+
+2026-10-28T23:18:14.676190 - [32m[INFO][0m [32mPrompt executed in 0.10 seconds[0m
+2026-10-28T23:18:53.811536 - [32m[INFO][0m got prompt
+2026-10-28T23:18:53.975658 - [1m[31m[ERROR][0m !!! Exception during processing !!! 10SOR Regeneration Gate session 'carousel-001', slot '4' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+2026-10-28T23:18:53.976345 - [1m[31m[ERROR][0m Traceback (most recent call last):
+  File "/workspace/ComfyUI/execution.py", line 548, in execute
+    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 353, in get_output_data
+    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 327, in _async_map_node_over_list
+    await process_inputs(input_dict, i)
+  File "/workspace/ComfyUI/execution.py", line 315, in process_inputs
+    result = f(**inputs)
+             ^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/regeneration_gate.py", line 106, in execute
+    return (self.store.load(session_id, slot_id),)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/storage.py", line 173, in load
+    raise ImageNotInitializedError(
+/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate.storage.ImageNotInitializedError: 10SOR Regeneration Gate session 'carousel-001', slot '4' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+
+2026-10-28T23:18:53.977254 - [32m[INFO][0m [32mPrompt executed in 0.10 seconds[0m
+2026-10-28T23:20:05.119612 - [32m[INFO][0m got prompt
+2026-10-28T23:20:05.387731 - [1m[31m[ERROR][0m !!! Exception during processing !!! 10SOR Regeneration Gate session 'carousel-001', slot '4' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+2026-10-28T23:20:05.388414 - [1m[31m[ERROR][0m Traceback (most recent call last):
+  File "/workspace/ComfyUI/execution.py", line 548, in execute
+    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 353, in get_output_data
+    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 327, in _async_map_node_over_list
+    await process_inputs(input_dict, i)
+  File "/workspace/ComfyUI/execution.py", line 315, in process_inputs
+    result = f(**inputs)
+             ^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/regeneration_gate.py", line 106, in execute
+    return (self.store.load(session_id, slot_id),)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/storage.py", line 173, in load
+    raise ImageNotInitializedError(
+/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate.storage.ImageNotInitializedError: 10SOR Regeneration Gate session 'carousel-001', slot '4' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+
+2026-10-28T23:20:05.389402 - [32m[INFO][0m [32mPrompt executed in 0.10 seconds[0m
+2026-10-28T23:20:19.690488 - [32m[INFO][0m got prompt
+2026-10-28T23:20:19.853005 - [1m[31m[ERROR][0m !!! Exception during processing !!! 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+2026-10-28T23:20:19.853653 - [1m[31m[ERROR][0m Traceback (most recent call last):
+  File "/workspace/ComfyUI/execution.py", line 548, in execute
+    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 353, in get_output_data
+    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 327, in _async_map_node_over_list
+    await process_inputs(input_dict, i)
+  File "/workspace/ComfyUI/execution.py", line 315, in process_inputs
+    result = f(**inputs)
+             ^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/regeneration_gate.py", line 106, in execute
+    return (self.store.load(session_id, slot_id),)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/storage.py", line 173, in load
+    raise ImageNotInitializedError(
+/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate.storage.ImageNotInitializedError: 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+
+2026-10-28T23:20:19.854606 - [32m[INFO][0m [32mPrompt executed in 0.09 seconds[0m
+2026-10-28T23:20:51.522257 - [32m[INFO][0m got prompt
+2026-10-28T23:20:51.573988 - [1m[31m[ERROR][0m Failed to validate prompt for output 1120:
+2026-10-28T23:20:51.574086 - [1m[31m[ERROR][0m * 10SORRegenerationGate 1465:
+2026-10-28T23:20:51.574142 - [1m[31m[ERROR][0m   - Required input is missing: fresh_image
+2026-10-28T23:20:51.574194 - [1m[31m[ERROR][0m * 10SORRegenerationGate 1590:
+2026-10-28T23:20:51.574238 - [1m[31m[ERROR][0m   - Required input is missing: fresh_image
+2026-10-28T23:20:51.574299 - [1m[31m[ERROR][0m * 10SORRegenerationGate 1519:
+2026-10-28T23:20:51.574347 - [1m[31m[ERROR][0m   - Required input is missing: fresh_image
+2026-10-28T23:20:51.574392 - [1m[31m[ERROR][0m Output will be ignored
+2026-10-28T23:20:51.737801 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T23:21:18.568969 - 2026-10-28T23:21:18.569016 - 
+2026-10-28T23:21:18.572062 - [32m[INFO][0m Comfy model compiler graph breaks: 0, rogues: 0
+2026-10-28T23:21:18.663934 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T23:21:43.264942 - 2026-10-28T23:21:43.264993 - 
+2026-10-28T23:21:43.266910 - [32m[INFO][0m Comfy model compiler graph breaks: 0, rogues: 0
+2026-10-28T23:21:44.651648 - [32m[INFO][0m Model WanVAE prepared for dynamic VRAM loading. 644MB Staged. 0 patches attached. Force pre-loaded 68 weights: 102 KB.
+2026-10-28T23:21:44.962330 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T23:21:47.646178 - [32m[INFO][0m Model QwenImage21TEModel_ prepared for dynamic VRAM loading. 16721MB Staged. 0 patches attached. Force pre-loaded 255 weights: 849 KB.
+2026-10-28T23:21:50.077162 - [32m[INFO][0m 0 models unloaded.
+2026-10-28T23:21:50.125670 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T23:21:50.155889 - [32m[INFO][0m Requested to load KVCacheModel
+2026-10-28T23:21:50.194760 - [32m[INFO][0m Model QwenImage21 prepared for dynamic VRAM loading. 6787MB Staged. 160 patches attached. Force pre-loaded 65 weights: 27 KB.
+2026-10-28T23:21:50.199096 - [32m[INFO][0m Model KVCacheModel prepared for dynamic VRAM loading. 12423MB Staged. 0 patches attached.
+2026-10-28T23:27:47.891815 - [32m[INFO][0m Interrupting prompt 1f8e6ef0-a0b2-4f9e-954c-a2515b6dc2a8
+2026-10-28T23:27:49.466878 - 2026-10-28T23:27:49.466936 - 
+2026-10-28T23:27:57.756344 - [32m[INFO][0m Comfy model compiler graph breaks: 2, rogues: 2
+2026-10-28T23:27:57.939398 - [32m[INFO][0m Processing interrupted
+2026-10-28T23:27:57.940243 - [32m[INFO][0m [32mPrompt executed in 426.35 seconds[0m
+2026-10-28T23:28:25.703378 - [32m[INFO][0m got prompt
+2026-10-28T23:28:25.942972 - [1m[31m[ERROR][0m !!! Exception during processing !!! 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+2026-10-28T23:28:25.945374 - [1m[31m[ERROR][0m Traceback (most recent call last):
+  File "/workspace/ComfyUI/execution.py", line 548, in execute
+    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 353, in get_output_data
+    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 327, in _async_map_node_over_list
+    await process_inputs(input_dict, i)
+  File "/workspace/ComfyUI/execution.py", line 315, in process_inputs
+    result = f(**inputs)
+             ^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/regeneration_gate.py", line 106, in execute
+    return (self.store.load(session_id, slot_id),)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/storage.py", line 173, in load
+    raise ImageNotInitializedError(
+/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate.storage.ImageNotInitializedError: 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+
+2026-10-28T23:28:25.946406 - [32m[INFO][0m [32mPrompt executed in 0.16 seconds[0m
+2026-10-28T23:28:49.062033 - [32m[INFO][0m got prompt
+2026-10-28T23:28:49.205911 - [1m[31m[ERROR][0m !!! Exception during processing !!! 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+2026-10-28T23:28:49.206678 - [1m[31m[ERROR][0m Traceback (most recent call last):
+  File "/workspace/ComfyUI/execution.py", line 548, in execute
+    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 353, in get_output_data
+    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/execution.py", line 327, in _async_map_node_over_list
+    await process_inputs(input_dict, i)
+  File "/workspace/ComfyUI/execution.py", line 315, in process_inputs
+    result = f(**inputs)
+             ^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/regeneration_gate.py", line 106, in execute
+    return (self.store.load(session_id, slot_id),)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate/storage.py", line 173, in load
+    raise ImageNotInitializedError(
+/workspace/ComfyUI/custom_nodes/ComfyUI-10SOR-Regeneration-Gate.storage.ImageNotInitializedError: 10SOR Regeneration Gate session 'carousel-001', slot '3' has no stored image. Set regenerate to TRUE and run this slot once before preserving it.
+
+2026-10-28T23:28:49.207622 - [32m[INFO][0m [32mPrompt executed in 0.03 seconds[0m
+
+```
+## Attached Workflow
+Please make sure that workflow does not contain any sensitive information such as API keys or passwords.
+```
+Workflow too large. Please manually upload the workflow from local file system.
+```
+
+## Additional Context
+(Please add any additional context or steps to reproduce the error here)
