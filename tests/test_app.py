@@ -72,8 +72,8 @@ def test_health_and_public_catalog() -> None:
         response = client.get("/api/catalog")
         assert response.status_code == 200
         workflows = response.json()["workflows"]
-        assert len(workflows) == 5
-        assert sum(not item.get("disabled", False) for item in workflows) == 5
+        assert len(workflows) == 6
+        assert sum(not item.get("disabled", False) for item in workflows) == 6
         assert "files" not in workflows[0]
         assert "custom_nodes" not in workflows[0]
         assert "url" not in workflows[0]
@@ -144,6 +144,7 @@ def test_catalog_contains_installers_but_no_product_workflows() -> None:
         "motion-control",
         "motion-control-god-edition",
         "minimax-h3",
+        "krqw2-1",
     ]
     assert {
         "image-generation",
@@ -160,8 +161,111 @@ def test_catalog_contains_installers_but_no_product_workflows() -> None:
             assert "workflow" not in destination
             assert file_spec["size_bytes"] > 0
             assert len(file_spec["sha256"]) == 64
-            assert file_spec["auth"] in {"none", "huggingface"}
+            assert file_spec["auth"] in {"none", "huggingface", "civitai"}
             assert file_spec["parallel"] is True
+
+
+def test_krqw2_1_resources_and_default_selection() -> None:
+    installer = next(
+        item for item in launcher_app.load_catalog()["workflows"]
+        if item["id"] == "krqw2-1"
+    )
+    assert installer["update_comfyui"] is True
+    assert sum(item["size_bytes"] for item in installer["files"]) == 44_298_179_946
+    assert [Path(item["destination"]).name for item in installer["files"]] == [
+        "redgptK2T2W6A8REDQW21_redqw21UNLOCKEDV2_fp8.safetensors",
+        "krea2_turbo_fp8_scaled.safetensors",
+        "civitai_lora_3357315_3244894.safetensors",
+        "qwen3vl_8b_bf16.safetensors",
+        "qwen3vl_4b_fp8_scaled.safetensors",
+        "qwen_image_2.1_vae_bf16.safetensors",
+        "krea2RealVae_v10.safetensors",
+    ]
+    assert [item["name"] for item in installer["custom_nodes"]] == [
+        "rgthree-comfy",
+        "ComfyUI-Custom-Scripts",
+        "ComfyUI-SeedVR2_VideoUpscaler",
+        "ComfyUI-Easy-Use",
+        "ComfyUI-10SOR-Regeneration-Gate",
+    ]
+    assert all(
+        re.fullmatch(r"[0-9a-f]{40}", item["ref"])
+        for item in installer["custom_nodes"]
+    )
+    defaults = launcher_app.workflow_with_selected_resources(installer, None)
+    assert len(defaults["files"]) == 7
+    public = next(
+        item for item in launcher_app.public_catalog()["workflows"]
+        if item["id"] == "krqw2-1"
+    )
+    assert len(public["resources"]) == 7
+    assert all(item["selected_by_default"] for item in public["resources"])
+    assert all("url" not in item and "auth" not in item for item in public["resources"])
+
+
+def test_krqw2_1_civitai_auth_preserves_file_selection(monkeypatch) -> None:
+    from urllib.parse import parse_qs, urlsplit
+
+    installer = next(
+        item for item in launcher_app.load_catalog()["workflows"]
+        if item["id"] == "krqw2-1"
+    )
+    gated = [item for item in installer["files"] if item["auth"] == "civitai"]
+    assert len(gated) == 2
+    for variable in ("CIVITAI_TOKEN", "CIVITAI_API_TOKEN"):
+        monkeypatch.delenv("CIVITAI_TOKEN", raising=False)
+        monkeypatch.delenv("CIVITAI_API_TOKEN", raising=False)
+        monkeypatch.setenv(variable, "civitai-test-only")
+        for item in gated:
+            url, _headers = launcher_app.tokenized_request(item)
+            query = parse_qs(urlsplit(url).query)
+            assert query["token"] == ["civitai-test-only"]
+            assert query["fileId"] == parse_qs(urlsplit(item["url"]).query)["fileId"]
+
+    monkeypatch.delenv("CIVITAI_TOKEN", raising=False)
+    monkeypatch.delenv("CIVITAI_API_TOKEN", raising=False)
+    for item in gated:
+        try:
+            launcher_app.tokenized_request(item)
+        except RuntimeError as exc:
+            assert "CIVITAI_TOKEN" in str(exc)
+        else:
+            raise AssertionError("Civitai resources must require their own credential")
+
+
+def test_krqw2_1_updates_before_selected_downloads(monkeypatch) -> None:
+    installer = next(
+        item for item in launcher_app.load_catalog()["workflows"]
+        if item["id"] == "krqw2-1"
+    )
+    selected = installer["files"][1]
+    plan = launcher_app.workflow_with_selected_resources(
+        installer, [selected["destination"]]
+    )
+    controller = launcher_app.JobController()
+    events = []
+
+    async def ready():
+        events.append("ready")
+
+    async def update():
+        events.append("update")
+
+    async def download(_client, file_spec, *_args):
+        events.append(("download", file_spec["destination"]))
+        return file_spec["size_bytes"]
+
+    async def nodes(packs):
+        events.append(("nodes", len(packs)))
+
+    monkeypatch.setattr(controller, "_wait_for_comfyui", ready)
+    monkeypatch.setattr(controller, "_update_comfyui", update)
+    monkeypatch.setattr(controller, "_download_file", download)
+    monkeypatch.setattr(controller, "_install_custom_nodes", nodes)
+    asyncio.run(controller._install_workflow(plan))
+    assert events == [
+        "ready", "update", ("download", selected["destination"]), ("nodes", 5)
+    ]
 
 
 def test_krea_2_extended_installer_matches_the_multiflow_registry() -> None:

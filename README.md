@@ -76,13 +76,28 @@ ComfyUI service on `127.0.0.1:18188`.
 
 ## Workflow catalog
 
-The catalog contains five installers:
+The catalog contains six installers:
 
 - Krea 2 Extended (approximately 84.9 GB with every optional resource selected)
 - Image Edit (approximately 17.8 GB)
 - WAN Motion Control (approximately 45.4 GB)
 - Motion Control GOD Edition (approximately 61.3 GB)
 - MiniMax H3 (approximately 63.4 GB)
+- KRQW2.1 (approximately 44.3 GB)
+
+KRQW2.1 installs REDGPT FP8, Krea 2 Turbo FP8, its Civitai LoRA, Qwen3-VL
+8B BF16 and 4B FP8 text encoders, Qwen Image 2.1 VAE BF16 and Krea 2 Real VAE.
+Its seven resources are selected by default in the expandable tile. Files already
+installed by another preset are verified and reused. The preset updates ComfyUI
+before setup and installs five pinned node packs: rgthree, Custom Scripts,
+SeedVR2 Video Upscaler, Easy Use and Regeneration Gate. The gate retains its
+upstream repository and node identifiers so existing KRQW2.1 workflows load.
+Set `CIVITAI_TOKEN` (or `CIVITAI_API_TOKEN`) on the instance for REDGPT and the
+Civitai LoRA; without it those two files are skipped with warnings. Hugging Face
+files continue to use the existing `hf download` path. This preset installs
+dependencies; it does not include the product workflow JSON. SeedVR2 can download
+its own upscaler weights when its node first runs; they are not among these seven
+files.
 
 Each preset installs its models and custom nodes. An individual failure is
 reported as a warning while remaining items continue. Product workflow JSON
