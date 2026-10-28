@@ -661,6 +661,7 @@ def wget_command(
     *,
     destination_dir: Path,
     resume: bool,
+    output_file: Path | None = None,
 ) -> list[str]:
     """Build the native downloader command used for large workflow assets."""
     command = [
@@ -679,6 +680,8 @@ def wget_command(
         command.append(f"--header={name}: {value}")
     if resume:
         command.extend(["--continue", f"--directory-prefix={destination_dir}"])
+    if output_file is not None:
+        command.extend(["--output-document", str(output_file)])
     command.append(url)
     return command
 
@@ -1932,9 +1935,44 @@ class JobController:
         """Use wget's native transfer engine while keeping launcher semantics."""
         staging_dir = destination.parent / ".dsnn-downloads"
         staging_dir.mkdir(parents=True, exist_ok=True)
-        staging_file = staging_dir / filename_from_url(url)
+        # API URLs have query strings, and redirects can supply another name.
+        # Give wget the exact path that progress, verification and resume use.
+        staging_file = staging_dir / (destination.name + ".part")
         if partial.exists():
             os.replace(partial, staging_file)
+
+        # Older builds let wget include the query (and token) in its filename.
+        # Recover completed transfers without fetching multi-GB files again.
+        if not staging_file.exists() and expected_size and expected_sha:
+            legacy_name = filename_from_url(url)
+            request_query = {
+                key: value for key, value in parse_qsl(urlsplit(url).query)
+                if key.lower() != "token"
+            }
+            for candidate in staging_dir.iterdir():
+                basename, _separator, query = candidate.name.partition("?")
+                if basename != legacy_name or not candidate.is_file():
+                    continue
+                candidate_query = {
+                    key: value for key, value in parse_qsl(query)
+                    if key.lower() != "token"
+                }
+                if candidate_query != request_query or candidate.stat().st_size != expected_size:
+                    continue
+                self.check_cancelled()
+                self.update(message=f"Verifying previously downloaded {name}…")
+                if await asyncio.to_thread(file_sha256, candidate) != expected_sha:
+                    continue
+                os.replace(candidate, destination)
+                self.update(
+                    message=f"{name} recovered from a previous download.",
+                    file_downloaded_bytes=expected_size,
+                    file_total_bytes=expected_size,
+                    downloaded_bytes=completed_bytes + expected_size,
+                    bytes_per_second=0,
+                    percent=((index + 1) / max(file_count, 1)) * download_ceiling,
+                )
+                return expected_size
 
         started = time.monotonic()
         self.update(
@@ -1946,7 +1984,10 @@ class JobController:
             file_total_bytes=expected_size,
         )
         process = await asyncio.create_subprocess_exec(
-            *wget_command(url, headers, destination_dir=staging_dir, resume=True),
+            *wget_command(
+                url, headers, destination_dir=staging_dir, resume=True,
+                output_file=staging_file,
+            ),
             stdout=asyncio.subprocess.DEVNULL,
             stderr=asyncio.subprocess.PIPE,
         )

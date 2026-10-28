@@ -638,6 +638,86 @@ def test_wget_command_uses_resumable_native_downloads(tmp_path) -> None:
     assert command[-1].endswith("model.safetensors")
 
 
+def test_wget_api_download_uses_a_fixed_filename_and_resumes(tmp_path, monkeypatch) -> None:
+    payload = b"civitai-api-regression-" * 100
+    controller = launcher_app.JobController()
+    destination = tmp_path / "models" / "redgpt.safetensors"
+    destination.parent.mkdir()
+    partial = destination.with_suffix(".safetensors.part")
+    partial.write_bytes(payload[:100])
+    commands = []
+
+    class Process:
+        returncode = 0
+
+        async def communicate(self):
+            return b"", b""
+
+    async def fake_wget(*command, **_kwargs):
+        from urllib.parse import urlsplit
+
+        commands.append(command)
+        if "--output-document" in command:
+            output = Path(command[command.index("--output-document") + 1])
+        else:
+            # GNU wget's default includes the query in the saved name.
+            directory = next(arg.split("=", 1)[1] for arg in command
+                             if arg.startswith("--directory-prefix="))
+            url = urlsplit(command[-1])
+            output = Path(directory) / (Path(url.path).name + "?" + url.query)
+        assert "--continue" in command
+        existing = output.read_bytes() if output.exists() else b""
+        assert existing == payload[:100]
+        output.write_bytes(existing + payload[len(existing):])
+        return Process()
+
+    monkeypatch.setattr(launcher_app.asyncio, "create_subprocess_exec", fake_wget)
+    downloaded = asyncio.run(controller._download_file_with_wget(
+        "https://civitai.com/api/download/models/3370753?fileId=3258921&token=test-only",
+        {}, "REDGPT FP8", destination, partial, len(payload),
+        hashlib.sha256(payload).hexdigest(), 0, 1, 0, len(payload), 99,
+    ))
+    assert downloaded == len(payload)
+    assert destination.read_bytes() == payload
+    assert not partial.exists()
+    output = Path(commands[0][commands[0].index("--output-document") + 1])
+    assert output.name == "redgpt.safetensors.part"
+    assert "token" not in output.name
+    assert not output.exists()
+
+
+def test_wget_recovers_verified_legacy_civitai_downloads(tmp_path, monkeypatch) -> None:
+    payload = b"previous-civitai-download-" * 100
+    destination = tmp_path / "redgpt.safetensors"
+    partial = tmp_path / "redgpt.safetensors.part"
+    staging = tmp_path / ".dsnn-downloads"
+    staging.mkdir()
+    other_file = staging / "3370753?fileId=other&token=old"
+    other_file.write_bytes(payload)
+    corrupt = staging / "3370753?fileId=3258921&token=corrupt"
+    corrupt.write_bytes(b"x" * len(payload))
+    legacy = staging / "3370753?fileId=3258921&token=old"
+    legacy.write_bytes(payload)
+
+    async def unexpected_download(*_args, **_kwargs):
+        raise AssertionError("Verified legacy files must not be downloaded again")
+
+    monkeypatch.setattr(launcher_app.asyncio, "create_subprocess_exec", unexpected_download)
+    controller = launcher_app.JobController()
+    downloaded = asyncio.run(controller._download_file_with_wget(
+        "https://civitai.com/api/download/models/3370753?fileId=3258921&token=new",
+        {}, "REDGPT FP8", destination, partial, len(payload),
+        hashlib.sha256(payload).hexdigest(), 0, 1, 0, len(payload), 99,
+    ))
+    assert downloaded == len(payload)
+    assert destination.read_bytes() == payload
+    assert not legacy.exists()
+    assert other_file.exists()
+    assert corrupt.exists()
+    assert "recovered" in controller.state.message
+    assert controller.state.file_downloaded_bytes == len(payload)
+
+
 def test_huggingface_file_reference_parses_resolve_urls() -> None:
     assert launcher_app.huggingface_file_reference(
         "https://huggingface.co/Comfy-Org/example/resolve/main/models/model.safetensors"
