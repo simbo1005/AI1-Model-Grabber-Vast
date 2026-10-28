@@ -1,0 +1,27 @@
+cd /workspace/ComfyUI
+/venv/main/bin/python - <<'PY'
+import importlib.util
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path.cwd()))
+folders = [
+    p for p in Path("custom_nodes").iterdir()
+    if p.is_dir() and "seedvr" in p.name.lower()
+    and (p / "__init__.py").is_file()
+]
+
+if not folders:
+    raise SystemExit("SeedVR2 repository is missing from custom_nodes.")
+
+for i, folder in enumerate(folders):
+    print(f"\nChecking: {folder}", flush=True)
+    spec = importlib.util.spec_from_file_location(
+        f"seedvr_probe_{i}", folder / "__init__.py",
+        submodule_search_locations=[str(folder.resolve())],
+    )
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    print("SeedVR2 imported successfully.", flush=True)
+PY
