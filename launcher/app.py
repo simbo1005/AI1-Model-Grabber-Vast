@@ -22,6 +22,7 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from launcher.impact_compat import repair_impact_frontend
 from launcher.node_setup import (
     ensure_system_tools,
     install_requirements as install_node_requirements,
@@ -1110,6 +1111,10 @@ class CustomNodeController:
             "https://github.com/numz/comfyui-seedvr2_videoupscaler"
         ):
             repair_seedvr_optional_imports(root)
+        elif normalized_git_remote(item.url) == (
+            "https://github.com/ltdrdata/comfyui-impact-pack"
+        ):
+            repair_impact_frontend(root)
         requirements = root / "requirements.txt"
         if not requirements.is_file():
             return
@@ -2126,6 +2131,10 @@ class JobController:
             "https://github.com/numz/comfyui-seedvr2_videoupscaler"
         ):
             repair_seedvr_optional_imports(destination)
+        elif node.get("repo", "").rstrip("/").removesuffix(".git").lower() == (
+            "https://github.com/ltdrdata/comfyui-impact-pack"
+        ):
+            repair_impact_frontend(destination)
         self.state.restart_required = True
         requirements = destination / "requirements.txt"
         if node.get("install_requirements", True) and requirements.is_file():
