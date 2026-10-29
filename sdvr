@@ -1,3 +1,50 @@
-curl -fsS http://127.0.0.1:18188/internal/logs \
+(main) root@b5689106ec4c:/workspace# curl -fsS http://127.0.0.1:18188/internal/logs \
   | python3 -c 'import json,sys; print(json.load(sys.stdin))' \
   | grep -i -B 40 -A 5 'cannot import.*seedvr'
+2026-10-29T11:25:56.224969 - ⚡ SeedVR2 optimizations check: SageAttention ✅ | Flash Attention ❌ | Triton ✅2026-10-29T11:25:56.224998 - 
+2026-10-29T11:25:56.225008 - 💡 Optional: pip install flash-attn2026-10-29T11:25:56.225015 - 
+2026-10-29T11:25:56.225025 - 🔧 Conv3d workaround active: PyTorch 2.10.0, cuDNN 91002 (fixing VAE 3x memory bug)2026-10-29T11:25:56.225032 - 
+2026-10-29T11:25:56.226448 - [INFO] [ComfyUI-Manager] default cache updated: https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/alter-list.json
+2026-10-29T11:25:56.232237 - [INFO] [ComfyUI-Manager] default cache updated: https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/model-list.json
+2026-10-29T11:25:56.273179 - [INFO] [ComfyUI-Manager] default cache updated: https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/github-stats.json
+2026-10-29T11:25:56.308481 - [INFO] [ComfyUI-Manager] default cache updated: https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/extension-node-map.json
+2026-10-29T11:25:56.312937 - 📊 Initial CUDA memory: 30.75GB free / 31.36GB total2026-10-29T11:25:56.312955 - 
+2026-10-29T11:25:56.355487 - [INFO] [ComfyUI-Manager] default cache updated: https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/custom-node-list.json
+2026-10-29T11:25:56.611792 - [WARNING] Traceback (most recent call last):
+  File "/workspace/ComfyUI/nodes.py", line 2276, in load_custom_node
+    module_spec.loader.exec_module(module)
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-SeedVR2_VideoUpscaler/__init__.py", line 7, in <module>
+    from .src.interfaces import comfy_entrypoint, SeedVR2Extension
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-SeedVR2_VideoUpscaler/src/interfaces/__init__.py", line 8, in <module>
+    from .video_upscaler import SeedVR2VideoUpscaler
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-SeedVR2_VideoUpscaler/src/interfaces/video_upscaler.py", line 10, in <module>
+    from ..utils.downloads import download_weight
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-SeedVR2_VideoUpscaler/src/utils/downloads.py", line 14, in <module>
+    from .model_registry import MODEL_REGISTRY, DEFAULT_VAE
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-SeedVR2_VideoUpscaler/src/utils/model_registry.py", line 12, in <module>
+    from ..models.dit_3b.nadit import NaDiT as NaDiT3B
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-SeedVR2_VideoUpscaler/src/models/dit_3b/nadit.py", line 24, in <module>
+    from .embedding import TimeEmbedding
+  File "/workspace/ComfyUI/custom_nodes/ComfyUI-SeedVR2_VideoUpscaler/src/models/dit_3b/embedding.py", line 17, in <module>
+    from diffusers.models.embeddings import get_timestep_embedding
+  File "/venv/main/lib/python3.12/site-packages/diffusers/models/embeddings.py", line 24, in <module>
+    from .attention_processor import Attention
+  File "/venv/main/lib/python3.12/site-packages/diffusers/models/attention_processor.py", line 37, in <module>
+    import xformers.ops
+  File "/venv/main/lib/python3.12/site-packages/xformers/ops/__init__.py", line 9, in <module>
+    from .fmha import (
+  File "/venv/main/lib/python3.12/site-packages/xformers/ops/fmha/__init__.py", line 10, in <module>
+    from . import (
+  File "/venv/main/lib/python3.12/site-packages/xformers/ops/fmha/flash.py", line 59, in <module>
+    import flash_attn.flash_attn_interface
+ModuleNotFoundError: No module named 'flash_attn.flash_attn_interface'
+
+2026-10-29T11:25:56.611979 - [WARNING] Cannot import /workspace/ComfyUI/custom_nodes/ComfyUI-SeedVR2_VideoUpscaler module for custom nodes: No module named 'flash_attn.flash_attn_interface'
+2026-10-29T11:25:57.113577 - Module 'diffusers' load failed. If you don't have it installed, do it:2026-10-29T11:25:57.113597 - 
+2026-10-29T11:25:57.113604 - pip install diffusers2026-10-29T11:25:57.113611 - 
+2026-10-29T11:25:57.149359 - [ComfyUI-Easy-Use] server: v1.4.1 Loaded2026-10-29T11:25:57.149375 - 
+2026-10-29T11:25:57.149383 - [ComfyUI-Easy-Use] web root: /workspace/ComfyUI/custom_nodes/ComfyUI-Easy-Use/web_version/v2 Loaded2026-10-29T11:25:57.149390 - 
+2026-10-29T11:25:57.170104 - [INFO] 
+(main) root@b5689106ec4c:/workspace# 
