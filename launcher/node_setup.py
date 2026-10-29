@@ -11,6 +11,44 @@ from uuid import uuid4
 
 RunProcess = Callable[..., Awaitable[tuple[int, str]]]
 
+
+def repair_seedvr_optional_imports(repository: Path) -> bool:
+    """Apply SeedVR2 PR #641 without replacing Torch or optional backends.
+
+    SeedVR2 2.5.24 creates phantom modules even when Flash Attention or
+    bitsandbytes is absent. Their truthy specs break xformers/peft detection.
+    Keep the existing fallback for installed-but-broken libraries unchanged.
+    """
+    source = repository / "src" / "optimization" / "compatibility.py"
+    original = source.read_text(encoding="utf-8")
+    updated = original
+    for package, comment in (
+        ("flash_attn", "DLL broken or not installed - create stub with proper __spec__"),
+        ("bitsandbytes", "Installation broken, not present, or version detection failed - create stub"),
+    ):
+        guard = f"        if importlib.machinery.PathFinder().find_spec('{package}') is None:\n            return\n"
+        if guard in updated:
+            continue
+        before = f"        # {comment}\n        stub = types.ModuleType('{package}')"
+        after = (
+            "        # Do not advertise an absent optional backend (SeedVR2 PR #641).\n"
+            + guard + f"        stub = types.ModuleType('{package}')"
+        )
+        if updated.count(before) != 1:
+            raise RuntimeError(
+                f"SeedVR2 compatibility code for {package} changed; "
+                "the reviewed optional-backend fix could not be applied safely."
+            )
+        updated = updated.replace(before, after, 1)
+    if updated == original:
+        return False
+    backup = source.with_suffix(".py.dsnn-backup")
+    if not backup.exists():
+        shutil.copy2(source, backup)
+    source.write_text(updated, encoding="utf-8")
+    return True
+
+
 SYSTEM_TOOLS = {
     "libimage-exiftool-perl": ("exiftool", "-ver"),
     "ffmpeg": ("ffmpeg", "-version"),

@@ -27,6 +27,7 @@ from launcher.node_setup import (
     install_requirements as install_node_requirements,
     node_registration_checks,
     prepare_repository,
+    repair_seedvr_optional_imports,
 )
 
 
@@ -1105,6 +1106,10 @@ class CustomNodeController:
         return output.strip()
 
     async def _repair_requirements(self, root: Path, item: CustomNodeState) -> None:
+        if normalized_git_remote(item.url) == (
+            "https://github.com/numz/comfyui-seedvr2_videoupscaler"
+        ):
+            repair_seedvr_optional_imports(root)
         requirements = root / "requirements.txt"
         if not requirements.is_file():
             return
@@ -2117,6 +2122,10 @@ class JobController:
 
     async def _install_custom_node(self, node: dict[str, Any]) -> None:
         destination = await prepare_repository(node, CUSTOM_NODES_DIR, self._run_process)
+        if node.get("repo", "").rstrip("/").removesuffix(".git").lower() == (
+            "https://github.com/numz/comfyui-seedvr2_videoupscaler"
+        ):
+            repair_seedvr_optional_imports(destination)
         self.state.restart_required = True
         requirements = destination / "requirements.txt"
         if node.get("install_requirements", True) and requirements.is_file():
