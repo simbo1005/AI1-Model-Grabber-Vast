@@ -12,6 +12,9 @@ const elements = {
   message: document.querySelector("#job-message"),
   metrics: document.querySelector("#job-metrics"),
   warnings: document.querySelector("#job-warnings"),
+  nodeChecks: document.querySelector("#job-node-checks"),
+  nodeSummary: document.querySelector("#job-node-summary"),
+  nodeResults: document.querySelector("#job-node-results"),
   error: document.querySelector("#job-error"),
   cancel: document.querySelector("#cancel-button"),
   restart: document.querySelector("#restart-button"),
@@ -358,15 +361,23 @@ function updatePanel(status) {
 
   const warnings = Array.isArray(status.warnings) ? status.warnings : [];
   elements.warnings.innerHTML = warnings.length
-    ? `<strong>Skipped items</strong><ul>${warnings
+    ? `<strong>Setup warnings</strong><ul>${warnings
         .map((warning) => `<li>${escapeText(warning)}</li>`)
         .join("")}</ul>`
     : "";
   elements.warnings.hidden = warnings.length === 0;
+  const checks = Array.isArray(status.node_checks) ? status.node_checks : [];
+  elements.nodeChecks.hidden = checks.length === 0;
+  const verified = checks.filter((check) => check.status === "verified").length;
+  elements.nodeSummary.textContent = `${verified} / ${checks.length} custom-node packs verified`;
+  elements.nodeResults.innerHTML = checks.map((check) =>
+    `<li><strong>${escapeText(check.name)}</strong> — ${escapeText(check.message || check.status)}</li>`
+  ).join("");
+  if (isError && checks.length) elements.nodeChecks.open = true;
   elements.error.textContent = status.error || "";
   elements.error.hidden = !status.error;
   elements.cancel.hidden = !isRunning;
-  elements.restart.hidden = !(isComplete && status.restart_required);
+  elements.restart.hidden = !(!isRunning && status.restart_required);
   elements.comfy.hidden = !isComplete;
   if (isComplete) {
     elements.comfy.href = comfyUrl(status.comfy_url);

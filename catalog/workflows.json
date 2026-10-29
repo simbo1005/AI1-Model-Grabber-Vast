@@ -1,10 +1,10 @@
 {
-  "version": 18,
+  "version": 19,
   "workflows": [
     {
       "id": "krea-2-extended",
       "title": "Krea 2 Extended",
-      "description": "Install the complete verified Krea 2 workflow stack: selectable FP8 and BF16 models, text encoders, 25 LoRAs, three VAEs, two upscalers, detection and ControlNet preprocessor models, and 15 supporting custom-node packs.",
+      "description": "Install the complete verified Krea 2 workflow stack: selectable FP8 and BF16 models, text encoders, 25 LoRAs, three VAEs, two upscalers, detection and ControlNet preprocessor models, and 16 supporting custom-node packs. Includes Bond Node Suite and ExifTool.",
       "badge": "READY",
       "accent": "#5271ff",
       "estimated_size": "Approx. 84.9 GB",
@@ -470,6 +470,40 @@
           "repo": "https://github.com/pixaroma/ComfyUI-Pixaroma.git",
           "ref": "bc54fc907b91358a3b7f1e214dc46ed2ef2be53c",
           "install_requirements": true
+        },
+        {
+          "name": "Bond-Node-Suite",
+          "repo": "https://github.com/bondngn-studios/Bond-Node-Suite.git",
+          "ref": "8d2f6ce3abd471442bfd6785226154ec605aea0a",
+          "install_requirements": true,
+          "required_node_types": [
+            "PromptJSONSelector",
+            "BatchIntPick",
+            "BatchStringPick",
+            "BondPromptArrayIterator",
+            "CartesianIndexDriverImg",
+            "CartesianIndexDriverImgPrmpt",
+            "RangeStepper",
+            "BondSwitch2to1",
+            "BondSwitch1to2",
+            "BondLoadImage",
+            "BondLoadImageFromPath",
+            "BondLoadVideoFromPath",
+            "BondLoadVideo",
+            "BondBatchImageLoader",
+            "BondShowText",
+            "BondReadMetadata",
+            "BondStripMetadata",
+            "BondGlobalMetadataSettings",
+            "BondSaveWithCustomMetadata",
+            "BondSaveVideoWithMetadata",
+            "BondText",
+            "BondTextConcatenate",
+            "BondSaveTextFile",
+            "BondBatchAudioLoader",
+            "BondResolution",
+            "BondBigNumber"
+          ]
         }
       ],
       "model_links": [
@@ -485,12 +519,16 @@
           "source": "models/annotators/depth-anything/Depth-Anything-V2-Large/depth_anything_v2_vitl.pth",
           "destination": "custom_nodes/comfyui_controlnet_aux/ckpts/depth-anything/Depth-Anything-V2-Large/depth_anything_v2_vitl.pth"
         }
+      ],
+      "system_packages": [
+        "libimage-exiftool-perl",
+        "ffmpeg"
       ]
     },
     {
       "id": "image-edit",
       "title": "Image Edit",
-      "description": "Install the full-quality FLUX.2 Klein and Krea 2 stacks used by the Lazarus face-swap workflow.",
+      "description": "Install the full-quality FLUX.2 Klein and Krea 2 stacks used by the Lazarus face-swap workflow. Includes Bond Node Suite and ExifTool.",
       "badge": "READY",
       "accent": "#5271ff",
       "estimated_size": "Approx. 70.3 GB",
@@ -631,13 +669,51 @@
           "repo": "https://github.com/chflame163/ComfyUI_LayerStyle.git",
           "ref": "02acdc50affb84cd24f341d1fc2d3a9134b2ad3d",
           "install_requirements": true
+        },
+        {
+          "name": "Bond-Node-Suite",
+          "repo": "https://github.com/bondngn-studios/Bond-Node-Suite.git",
+          "ref": "8d2f6ce3abd471442bfd6785226154ec605aea0a",
+          "install_requirements": true,
+          "required_node_types": [
+            "PromptJSONSelector",
+            "BatchIntPick",
+            "BatchStringPick",
+            "BondPromptArrayIterator",
+            "CartesianIndexDriverImg",
+            "CartesianIndexDriverImgPrmpt",
+            "RangeStepper",
+            "BondSwitch2to1",
+            "BondSwitch1to2",
+            "BondLoadImage",
+            "BondLoadImageFromPath",
+            "BondLoadVideoFromPath",
+            "BondLoadVideo",
+            "BondBatchImageLoader",
+            "BondShowText",
+            "BondReadMetadata",
+            "BondStripMetadata",
+            "BondGlobalMetadataSettings",
+            "BondSaveWithCustomMetadata",
+            "BondSaveVideoWithMetadata",
+            "BondText",
+            "BondTextConcatenate",
+            "BondSaveTextFile",
+            "BondBatchAudioLoader",
+            "BondResolution",
+            "BondBigNumber"
+          ]
         }
+      ],
+      "system_packages": [
+        "libimage-exiftool-perl",
+        "ffmpeg"
       ]
     },
     {
       "id": "motion-control",
       "title": "WAN Motion Control",
-      "description": "Install the complete WAN SCAIL 2 FP16 motion-control stack, including acceleration and motion LoRAs, CLIP Vision, UMT5, VAE, SAM 3.1 and seven supporting custom-node packs.",
+      "description": "Install the complete WAN SCAIL 2 FP16 motion-control stack, including acceleration and motion LoRAs, CLIP Vision, UMT5, VAE, SAM 3.1 and eight supporting custom-node packs. Includes Bond Node Suite and ExifTool.",
       "badge": "READY",
       "accent": "#5271ff",
       "estimated_size": "Approx. 45.4 GB",
@@ -767,13 +843,51 @@
           "repo": "https://github.com/ltdrdata/ComfyUI-Impact-Pack.git",
           "ref": "429d0159ad429e64d2b3916e6e7be9c22d025c3c",
           "install_requirements": true
+        },
+        {
+          "name": "Bond-Node-Suite",
+          "repo": "https://github.com/bondngn-studios/Bond-Node-Suite.git",
+          "ref": "8d2f6ce3abd471442bfd6785226154ec605aea0a",
+          "install_requirements": true,
+          "required_node_types": [
+            "PromptJSONSelector",
+            "BatchIntPick",
+            "BatchStringPick",
+            "BondPromptArrayIterator",
+            "CartesianIndexDriverImg",
+            "CartesianIndexDriverImgPrmpt",
+            "RangeStepper",
+            "BondSwitch2to1",
+            "BondSwitch1to2",
+            "BondLoadImage",
+            "BondLoadImageFromPath",
+            "BondLoadVideoFromPath",
+            "BondLoadVideo",
+            "BondBatchImageLoader",
+            "BondShowText",
+            "BondReadMetadata",
+            "BondStripMetadata",
+            "BondGlobalMetadataSettings",
+            "BondSaveWithCustomMetadata",
+            "BondSaveVideoWithMetadata",
+            "BondText",
+            "BondTextConcatenate",
+            "BondSaveTextFile",
+            "BondBatchAudioLoader",
+            "BondResolution",
+            "BondBigNumber"
+          ]
         }
+      ],
+      "system_packages": [
+        "libimage-exiftool-perl",
+        "ffmpeg"
       ]
     },
     {
       "id": "motion-control-god-edition",
       "title": "Motion Control GOD Edition",
-      "description": "Install the complete WAN 2.2 Animate motion-control workflow stack with pose and face preprocessing, interpolation, SageAttention 2.2.0 and GPU ONNX acceleration. Tuned for RTX PRO 6000 Blackwell, H200 SXM and B200.",
+      "description": "Install the complete WAN 2.2 Animate motion-control workflow stack with pose and face preprocessing, interpolation, SageAttention 2.2.0 and GPU ONNX acceleration. Tuned for RTX PRO 6000 Blackwell, H200 SXM and B200. Includes Bond Node Suite and ExifTool.",
       "badge": "GOD EDITION",
       "accent": "#ff7a18",
       "estimated_size": "Approx. 61.3 GB",
@@ -990,13 +1104,51 @@
           "repo": "https://github.com/aining2022/ComfyUI_Swwan.git",
           "ref": "7cfbebaf850d1ce8eaa3bda63e10597d8864261d",
           "install_requirements": true
+        },
+        {
+          "name": "Bond-Node-Suite",
+          "repo": "https://github.com/bondngn-studios/Bond-Node-Suite.git",
+          "ref": "8d2f6ce3abd471442bfd6785226154ec605aea0a",
+          "install_requirements": true,
+          "required_node_types": [
+            "PromptJSONSelector",
+            "BatchIntPick",
+            "BatchStringPick",
+            "BondPromptArrayIterator",
+            "CartesianIndexDriverImg",
+            "CartesianIndexDriverImgPrmpt",
+            "RangeStepper",
+            "BondSwitch2to1",
+            "BondSwitch1to2",
+            "BondLoadImage",
+            "BondLoadImageFromPath",
+            "BondLoadVideoFromPath",
+            "BondLoadVideo",
+            "BondBatchImageLoader",
+            "BondShowText",
+            "BondReadMetadata",
+            "BondStripMetadata",
+            "BondGlobalMetadataSettings",
+            "BondSaveWithCustomMetadata",
+            "BondSaveVideoWithMetadata",
+            "BondText",
+            "BondTextConcatenate",
+            "BondSaveTextFile",
+            "BondBatchAudioLoader",
+            "BondResolution",
+            "BondBigNumber"
+          ]
         }
+      ],
+      "system_packages": [
+        "libimage-exiftool-perl",
+        "ffmpeg"
       ]
     },
     {
       "id": "minimax-h3",
       "title": "MiniMax H3",
-      "description": "Update ComfyUI and install the complete MiniMax H3 video and audio model stack.",
+      "description": "Update ComfyUI and install the complete MiniMax H3 video and audio model stack. Includes Bond Node Suite and ExifTool.",
       "badge": "READY",
       "accent": "#5271ff",
       "estimated_size": "Approx. 63.4 GB",
@@ -1066,13 +1218,51 @@
           "repo": "https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git",
           "ref": "4ee72c065db22c9d96c2427954dc69e7b908444b",
           "install_requirements": true
+        },
+        {
+          "name": "Bond-Node-Suite",
+          "repo": "https://github.com/bondngn-studios/Bond-Node-Suite.git",
+          "ref": "8d2f6ce3abd471442bfd6785226154ec605aea0a",
+          "install_requirements": true,
+          "required_node_types": [
+            "PromptJSONSelector",
+            "BatchIntPick",
+            "BatchStringPick",
+            "BondPromptArrayIterator",
+            "CartesianIndexDriverImg",
+            "CartesianIndexDriverImgPrmpt",
+            "RangeStepper",
+            "BondSwitch2to1",
+            "BondSwitch1to2",
+            "BondLoadImage",
+            "BondLoadImageFromPath",
+            "BondLoadVideoFromPath",
+            "BondLoadVideo",
+            "BondBatchImageLoader",
+            "BondShowText",
+            "BondReadMetadata",
+            "BondStripMetadata",
+            "BondGlobalMetadataSettings",
+            "BondSaveWithCustomMetadata",
+            "BondSaveVideoWithMetadata",
+            "BondText",
+            "BondTextConcatenate",
+            "BondSaveTextFile",
+            "BondBatchAudioLoader",
+            "BondResolution",
+            "BondBigNumber"
+          ]
         }
+      ],
+      "system_packages": [
+        "libimage-exiftool-perl",
+        "ffmpeg"
       ]
     },
     {
       "id": "krqw2-1",
       "title": "KRQW2.1",
-      "description": "Install the seven-model KRQW2.1 stack with REDGPT, Krea 2 Turbo, Qwen3-VL text encoders, Qwen Image 2.1 VAEs and five supporting custom-node packs.",
+      "description": "Install the seven-model KRQW2.1 stack with REDGPT, Krea 2 Turbo, Qwen3-VL text encoders, Qwen Image 2.1 VAEs and six supporting custom-node packs. Includes Bond Node Suite and ExifTool.",
       "badge": "READY",
       "accent": "#5271ff",
       "estimated_size": "Approx. 44.3 GB",
@@ -1159,7 +1349,13 @@
           "name": "ComfyUI-SeedVR2_VideoUpscaler",
           "repo": "https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler.git",
           "ref": "4490bd1f482e026674543386bb2a4d176da245b9",
-          "install_requirements": true
+          "install_requirements": true,
+          "required_node_types": [
+            "SeedVR2VideoUpscaler",
+            "SeedVR2LoadDiTModel",
+            "SeedVR2LoadVAEModel",
+            "SeedVR2TorchCompileSettings"
+          ]
         },
         {
           "name": "ComfyUI-Easy-Use",
@@ -1172,7 +1368,45 @@
           "repo": "https://github.com/10sorlabs/ComfyUI-10SOR-Regeneration-Gate.git",
           "ref": "7d891c3c1abb64cd51913816ecf3eeca343574bc",
           "install_requirements": true
+        },
+        {
+          "name": "Bond-Node-Suite",
+          "repo": "https://github.com/bondngn-studios/Bond-Node-Suite.git",
+          "ref": "8d2f6ce3abd471442bfd6785226154ec605aea0a",
+          "install_requirements": true,
+          "required_node_types": [
+            "PromptJSONSelector",
+            "BatchIntPick",
+            "BatchStringPick",
+            "BondPromptArrayIterator",
+            "CartesianIndexDriverImg",
+            "CartesianIndexDriverImgPrmpt",
+            "RangeStepper",
+            "BondSwitch2to1",
+            "BondSwitch1to2",
+            "BondLoadImage",
+            "BondLoadImageFromPath",
+            "BondLoadVideoFromPath",
+            "BondLoadVideo",
+            "BondBatchImageLoader",
+            "BondShowText",
+            "BondReadMetadata",
+            "BondStripMetadata",
+            "BondGlobalMetadataSettings",
+            "BondSaveWithCustomMetadata",
+            "BondSaveVideoWithMetadata",
+            "BondText",
+            "BondTextConcatenate",
+            "BondSaveTextFile",
+            "BondBatchAudioLoader",
+            "BondResolution",
+            "BondBigNumber"
+          ]
         }
+      ],
+      "system_packages": [
+        "libimage-exiftool-perl",
+        "ffmpeg"
       ]
     }
   ]

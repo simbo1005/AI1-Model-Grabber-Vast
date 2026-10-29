@@ -51,6 +51,9 @@ if errorlevel 1 set /a FAILURES+=1
 call :install_node "RES4LYF" "https://github.com/ClownsharkBatwing/RES4LYF.git" "e716cd1cb2c5cff90131bf4914b75b75a0489d48"
 if errorlevel 1 set /a FAILURES+=1
 
+call :install_node "Bond-Node-Suite" "https://github.com/bondngn-studios/Bond-Node-Suite.git" "8d2f6ce3abd471442bfd6785226154ec605aea0a"
+if errorlevel 1 set /a FAILURES+=1
+
 if not "%FAILURES%"=="0" goto :partial_failure
 
 echo.

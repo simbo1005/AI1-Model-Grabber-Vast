@@ -187,6 +187,7 @@ def test_krqw2_1_resources_and_default_selection() -> None:
         "ComfyUI-SeedVR2_VideoUpscaler",
         "ComfyUI-Easy-Use",
         "ComfyUI-10SOR-Regeneration-Gate",
+        "Bond-Node-Suite",
     ]
     assert all(
         re.fullmatch(r"[0-9a-f]{40}", item["ref"])
@@ -258,13 +259,18 @@ def test_krqw2_1_updates_before_selected_downloads(monkeypatch) -> None:
     async def nodes(packs):
         events.append(("nodes", len(packs)))
 
+    async def system_packages(packages):
+        assert "libimage-exiftool-perl" in packages
+        events.append("system")
+
+    monkeypatch.setattr(controller, "_ensure_system_packages", system_packages)
     monkeypatch.setattr(controller, "_wait_for_comfyui", ready)
     monkeypatch.setattr(controller, "_update_comfyui", update)
     monkeypatch.setattr(controller, "_download_file", download)
     monkeypatch.setattr(controller, "_install_custom_nodes", nodes)
     asyncio.run(controller._install_workflow(plan))
     assert events == [
-        "ready", "update", ("download", selected["destination"]), ("nodes", 5)
+        "ready", "update", "system", ("download", selected["destination"]), ("nodes", 6)
     ]
 
 
@@ -354,6 +360,7 @@ def test_krea_2_extended_installer_matches_the_multiflow_registry() -> None:
         "CRT-Nodes",
         "realisim-enhancor",
         "ComfyUI-Pixaroma",
+        "Bond-Node-Suite",
     ]
     assert all(
         re.fullmatch(r"[0-9a-f]{40}", node["ref"])
@@ -455,6 +462,7 @@ def test_motion_control_installer_matches_the_wan_manifest() -> None:
         "ComfyUI-Easy-Use",
         "ComfyUI-Custom-Scripts",
         "ComfyUI-Impact-Pack",
+        "Bond-Node-Suite",
     ]
     nvidia = next(
         item
@@ -505,6 +513,7 @@ def test_motion_control_god_edition_matches_the_workflow_export() -> None:
         "comfyui-propost",
         "CRT-Nodes",
         "ComfyUI_Swwan",
+        "Bond-Node-Suite",
     ]
     assert all(
         re.fullmatch(r"[0-9a-f]{40}", node["ref"])
@@ -537,6 +546,7 @@ def test_minimax_h3_installer_matches_the_catalog_manifest() -> None:
         "ComfyUI-KJNodes",
         "rgthree-comfy",
         "ComfyUI-VideoHelperSuite",
+        "Bond-Node-Suite",
     ]
     assert all("/resolve/main/" in item["url"] for item in installer["files"])
 
@@ -865,6 +875,7 @@ def test_frontend_is_served() -> None:
         assert "Custom nodes" in response.text
         assert "Install queue" in response.text
         assert 'id="job-warnings"' in response.text
+        assert 'id="job-node-checks"' in response.text
         assert 'id="restart-button"' in response.text
         assert 'id="custom-node-restart-button"' in response.text
 
@@ -916,6 +927,9 @@ def test_real_download_writes_and_verifies_file(tmp_path, monkeypatch) -> None:
         "custom_nodes": [],
     }
     controller = launcher_app.JobController()
+    async def ready():
+        return None
+    monkeypatch.setattr(controller, "_wait_for_comfyui", ready)
     try:
         asyncio.run(controller._run(workflow))
     finally:
@@ -1222,7 +1236,10 @@ def test_custom_node_clone_requirements_and_existing_detection(
     comfy_dir.mkdir()
     monkeypatch.setattr(launcher_app, "COMFYUI_DIR", comfy_dir)
     monkeypatch.setattr(launcher_app, "CUSTOM_NODES_DIR", custom_nodes_dir)
-    monkeypatch.setattr(launcher_app, "COMFYUI_VENV", comfy_dir / ".venv-cu128")
+    monkeypatch.setattr(
+        launcher_app, "COMFYUI_VENV",
+        Path(launcher_app.sys.executable).parent.parent,
+    )
     monkeypatch.setattr(launcher_app, "validate_custom_node_url", lambda url: url)
 
     controller = launcher_app.CustomNodeController()
@@ -1242,7 +1259,8 @@ def test_custom_node_clone_requirements_and_existing_detection(
 
     assert first_state.status == "complete"
     assert first_state.restart_required is True
-    assert second_state.status == "skipped"
+    assert second_state.status == "complete"
+    assert second_state.restart_required is True
     assert (destination / "__init__.py").exists()
     assert not list(custom_nodes_dir.glob(".dsnn-*.part"))
 
@@ -1255,6 +1273,11 @@ def test_workflow_fetches_a_missing_pinned_custom_node_commit(
     custom_nodes_dir = comfy_dir / "custom_nodes"
     destination = custom_nodes_dir / "ComfyUI-KJNodes"
     destination.mkdir(parents=True)
+    venv = comfy_dir / ".venv-cu128"
+    (venv / "bin").mkdir(parents=True)
+    (venv / "bin" / "python").touch()
+    monkeypatch.setattr(launcher_app, "COMFYUI_VENV", venv)
+    (destination / "__init__.py").write_text("", encoding="utf-8")
     (destination / "requirements.txt").write_text(
         "nvidia-vfx\n", encoding="utf-8"
     )
@@ -1290,7 +1313,7 @@ def test_workflow_fetches_a_missing_pinned_custom_node_commit(
 
     assert any("fetch" in command and ref in command for command in commands)
     assert any("checkout" in command and ref in command for command in commands)
-    pip_command = next(command for command in commands if "pip" in command)
+    pip_command = next(command for command in commands if "pip" in command and "install" in command)
     assert pip_command[pip_command.index("--extra-index-url") + 1] == (
         "https://pypi.nvidia.com/"
     )

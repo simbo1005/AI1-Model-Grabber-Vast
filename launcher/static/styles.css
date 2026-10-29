@@ -917,6 +917,25 @@ h1 {
   }
 }
 
+.job-node-checks {
+  margin-top: 12px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.job-node-checks summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.job-node-checks ul {
+  padding-left: 20px;
+}
+
+.job-node-checks li + li {
+  margin-top: 6px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

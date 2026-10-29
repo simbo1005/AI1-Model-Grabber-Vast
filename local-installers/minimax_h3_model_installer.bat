@@ -41,6 +41,9 @@ if errorlevel 1 set /a FAILURES+=1
 call :install_node "ComfyUI-VideoHelperSuite" "https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git" "4ee72c065db22c9d96c2427954dc69e7b908444b"
 if errorlevel 1 set /a FAILURES+=1
 
+call :install_node "Bond-Node-Suite" "https://github.com/bondngn-studios/Bond-Node-Suite.git" "8d2f6ce3abd471442bfd6785226154ec605aea0a"
+if errorlevel 1 set /a FAILURES+=1
+
 if not "%FAILURES%"=="0" goto :partial_failure
 
 echo.

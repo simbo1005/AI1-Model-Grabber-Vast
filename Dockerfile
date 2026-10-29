@@ -34,11 +34,10 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 WORKDIR /opt/dsnn
 
-RUN if ! command -v wget >/dev/null 2>&1; then \
-      apt-get update \
-      && apt-get install -y --no-install-recommends wget \
-      && rm -rf /var/lib/apt/lists/*; \
-    fi
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends wget ffmpeg libimage-exiftool-perl \
+    && exiftool -ver \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY requirements-launcher.txt /tmp/requirements-launcher.txt
 RUN uv pip install \

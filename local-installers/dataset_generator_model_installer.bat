@@ -65,6 +65,9 @@ call :install_node "ComfyUI_FaceAnalysis" "https://github.com/cubiq/ComfyUI_Face
 if errorlevel 1 set /a FAILURES+=1
 
 set "HF_TOKEN="
+call :install_node "Bond-Node-Suite" "https://github.com/bondngn-studios/Bond-Node-Suite.git" "8d2f6ce3abd471442bfd6785226154ec605aea0a"
+if errorlevel 1 set /a FAILURES+=1
+
 if not "%FAILURES%"=="0" goto :partial_failure
 
 echo.

@@ -22,6 +22,13 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from launcher.node_setup import (
+    ensure_system_tools,
+    install_requirements as install_node_requirements,
+    node_registration_checks,
+    prepare_repository,
+)
+
 
 SOURCE_ROOT = Path(
     os.getenv("LAUNCHER_SOURCE_ROOT", Path(__file__).resolve().parents[1])
@@ -90,6 +97,11 @@ COMFYUI_UPSTREAM = "https://github.com/Comfy-Org/ComfyUI.git"
 _COMMIT_SHA = re.compile(r"[0-9a-f]{40}")
 _NETWORK_FAILURE_MARKERS = (
     "read timed out",
+    "timed out",
+    "could not resolve",
+    "temporary failure",
+    "temporarily limiting",
+    "http 429",
     "connection",
     "name resolution",
     "network is unreachable",
@@ -121,6 +133,7 @@ class JobState:
     percent: float = 0
     error: str | None = None
     warnings: list[str] = field(default_factory=list)
+    node_checks: list[dict[str, Any]] = field(default_factory=list)
     comfy_url: str = ""
     jupyter_url: str = ""
     restart_required: bool = False
@@ -1091,6 +1104,20 @@ class CustomNodeController:
             return ""
         return output.strip()
 
+    async def _repair_requirements(self, root: Path, item: CustomNodeState) -> None:
+        requirements = root / "requirements.txt"
+        if not requirements.is_file():
+            return
+        self.update(item, status="installing", message="Checking Python requirements…", percent=82)
+        python = COMFYUI_VENV / "bin" / "python"
+        if not python.exists():
+            raise RuntimeError(f"ComfyUI's Python environment is not ready: {COMFYUI_VENV}")
+        code, output = await install_node_requirements(
+            requirements, python, self._run_process, needs_build_isolation,
+        )
+        if code:
+            raise RuntimeError("Custom node requirements failed: " + output[-1500:])
+
     async def _run_item(self, item: CustomNodeState) -> None:
         staging: Path | None = None
         try:
@@ -1114,11 +1141,15 @@ class CustomNodeController:
             if destination.exists():
                 existing_origin = await self._origin_url(destination)
                 if existing_origin and normalized_git_remote(existing_origin) == normalized_git_remote(item.url):
+                    if not (destination / "__init__.py").is_file():
+                        raise RuntimeError("The existing node package is incomplete (missing __init__.py).")
+                    await self._repair_requirements(destination, item)
                     self.update(
                         item,
-                        status="skipped",
-                        message="Custom node already found — install skipped.",
+                        status="complete",
+                        message="Existing node checked and requirements repaired. Restart ComfyUI to load it.",
                         percent=100,
+                        restart_required=True,
                         completed_at=utc_now(),
                     )
                     return
@@ -1152,41 +1183,9 @@ class CustomNodeController:
                 )
 
             self.update(item, percent=74, message="Repository cloned.")
-            requirements = staging / "requirements.txt"
-            if requirements.is_file():
-                self.update(
-                    item,
-                    status="installing",
-                    message="Installing Python requirements...",
-                    percent=82,
-                )
-                python = COMFYUI_VENV / "bin" / "python"
-                if not python.exists():
-                    python = Path(sys.executable)
-                command: tuple[str | Path, ...] = (
-                    python,
-                    "-m",
-                    "pip",
-                    "install",
-                    "--disable-pip-version-check",
-                    "--timeout",
-                    "30",
-                    "--retries",
-                    "3",
-                    "--no-build-isolation",
-                    "-r",
-                    requirements,
-                )
-                returncode, output = await self._run_process(*command)
-                if returncode and needs_build_isolation(output):
-                    command = tuple(part for part in command if part != "--no-build-isolation")
-                    returncode, output = await self._run_process(*command)
-                if returncode:
-                    raise RuntimeError(
-                        "Custom node requirements failed: "
-                        f"{output[-500:]}"
-                    )
-                self.update(item, percent=96, message="Requirements installed.")
+            if not (staging / "__init__.py").is_file():
+                raise RuntimeError("The cloned node package has no __init__.py.")
+            await self._repair_requirements(staging, item)
 
             os.replace(staging, destination)
             staging = None
@@ -1287,7 +1286,7 @@ class ComfyServiceController:
 
                 started = time.monotonic()
                 saw_offline = False
-                while time.monotonic() - started < 120:
+                while time.monotonic() - started < int(os.getenv("COMFYUI_RESTART_TIMEOUT", "300")):
                     await asyncio.sleep(1)
                     ready = await self._is_ready(client)
                     saw_offline = saw_offline or not ready
@@ -1300,7 +1299,7 @@ class ComfyServiceController:
                             completed_at=utc_now(),
                         )
                         return
-            raise RuntimeError("ComfyUI did not become ready again within two minutes.")
+            raise RuntimeError("ComfyUI did not become ready again within the restart timeout.")
         except Exception as exc:
             self.update(
                 status="error",
@@ -1320,6 +1319,7 @@ class JobController:
         self.cancel_event = asyncio.Event()
         self.lock = asyncio.Lock()
         self.diagnostics: deque[dict[str, Any]] = deque(maxlen=100)
+        self.node_failures: dict[str, str] = {}
 
     def update(self, **changes: Any) -> None:
         for key, value in changes.items():
@@ -1338,6 +1338,7 @@ class JobController:
                 raise HTTPException(status_code=400, detail="This workflow is not available yet.")
 
             self.cancel_event = asyncio.Event()
+            self.node_failures.clear()
             self.state = JobState(
                 status="running",
                 workflow_id=workflow["id"],
@@ -1406,7 +1407,12 @@ class JobController:
                     self.state.restart_required = False
                     self.state.comfy_restarted = True
                 except Exception as exc:
+                    if workflow.get("custom_nodes"):
+                        raise RuntimeError(
+                            f"ComfyUI restart failed; custom nodes could not be verified: {exc}"
+                        ) from exc
                     self.add_warning(f"Automatic ComfyUI restart: {exc}")
+                await self._verify_custom_nodes(workflow.get("custom_nodes", []))
             warning_count = len(self.state.warnings)
             self.update(
                 status="complete",
@@ -1482,15 +1488,24 @@ class JobController:
     async def _wait_for_comfyui(self) -> None:
         timeout = int(os.getenv("COMFYUI_READY_TIMEOUT", "600"))
         started = time.monotonic()
-        while not COMFYUI_DIR.exists():
-            self.check_cancelled()
-            if time.monotonic() - started > timeout:
-                raise RuntimeError("ComfyUI did not become ready in time.")
-            self.update(
-                stage="preparing",
-                message="Waiting for the stock ComfyUI setup…",
-            )
-            await asyncio.sleep(1)
+        python = COMFYUI_VENV / "bin" / "python"
+        async with httpx.AsyncClient(timeout=5) as client:
+            while True:
+                self.check_cancelled()
+                if COMFYUI_DIR.is_dir() and python.is_file():
+                    try:
+                        response = await client.get(f"{COMFYUI_LOCAL_URL}/system_stats")
+                        if response.status_code == 200:
+                            return
+                    except httpx.HTTPError:
+                        pass
+                if time.monotonic() - started > timeout:
+                    raise RuntimeError(
+                        "ComfyUI and its configured Python environment did not become ready. "
+                        f"Check COMFYUI_DIR and COMFYUI_VENV ({COMFYUI_VENV})."
+                    )
+                self.update(stage="preparing", message="Waiting for ComfyUI and its Python environment…")
+                await asyncio.sleep(1)
 
     async def _update_comfyui(self) -> None:
         git_directory = COMFYUI_DIR / ".git"
@@ -1597,6 +1612,8 @@ class JobController:
 
         if should_update_comfyui:
             await self._update_comfyui()
+
+        await self._ensure_system_packages(workflow.get("system_packages", []))
 
         known_total = sum(
             max(0, int(file_spec.get("size_bytes", 0))) for file_spec in files
@@ -2099,148 +2116,85 @@ class JobController:
                 raise RuntimeError(f"Could not place {source.name} for its custom node.")
 
     async def _install_custom_node(self, node: dict[str, Any]) -> None:
-        name = str(node.get("name", "")).strip()
-        if not re.fullmatch(r"[A-Za-z0-9._-]+", name):
-            raise RuntimeError(f"Unsafe custom node name: {name!r}")
-        repo = str(node.get("repo", "")).strip()
-        if not repo.startswith("https://github.com/"):
-            raise RuntimeError(f"Custom node {name} must use a GitHub HTTPS URL.")
-
-        destination = (CUSTOM_NODES_DIR / name).resolve()
-        if not destination.is_relative_to(CUSTOM_NODES_DIR.resolve()):
-            raise RuntimeError(f"Unsafe custom node destination: {name}")
-
-        if not destination.exists():
-            returncode, output = await self._run_process(
-                "git",
-                "clone",
-                "--filter=blob:none",
-                "--depth=1",
-                repo,
-                destination,
-            )
-            if returncode:
-                shutil.rmtree(destination, ignore_errors=True)
-                raise RuntimeError(
-                    f"Could not install custom node {name}: {output[-500:]}"
-                )
-        else:
-            returncode, origin = await self._run_process(
-                "git",
-                "-C",
-                destination,
-                "remote",
-                "get-url",
-                "origin",
-            )
-            if returncode or normalized_git_remote(origin) != normalized_git_remote(repo):
-                raise RuntimeError(
-                    f"The existing {name} folder is not the expected Git repository."
-                )
-
-        ref = str(node.get("ref", "")).strip()
-        if ref:
-            returncode, _ = await self._run_process(
-                "git",
-                "-C",
-                destination,
-                "cat-file",
-                "-e",
-                f"{ref}^{{commit}}",
-            )
-            if returncode:
-                returncode, output = await self._run_process(
-                    "git",
-                    "-C",
-                    destination,
-                    "fetch",
-                    "--no-tags",
-                    "--filter=blob:none",
-                    "--depth=1",
-                    "origin",
-                    ref,
-                )
-                if returncode:
-                    raise RuntimeError(
-                        f"Could not fetch the pinned version for {name}: {output[-500:]}"
-                    )
-
-            returncode, output = await self._run_process(
-                "git",
-                "-C",
-                destination,
-                "checkout",
-                "--detach",
-                ref,
-            )
-            if returncode:
-                raise RuntimeError(
-                    f"Could not select the pinned version for {name}: {output[-500:]}"
-                )
-
+        destination = await prepare_repository(node, CUSTOM_NODES_DIR, self._run_process)
         self.state.restart_required = True
         requirements = destination / "requirements.txt"
-        if node.get("install_requirements", True) and requirements.exists():
-            pip = COMFYUI_VENV / "bin" / "python"
-            if not pip.exists():
-                pip = Path("python3.12")
-            extra_index_url = str(
-                node.get("requirements_extra_index_url") or ""
-            ).strip()
-            if extra_index_url and extra_index_url != "https://pypi.nvidia.com/":
-                raise RuntimeError(
-                    f"Unsupported Python package index for {name}: {extra_index_url}"
-                )
-            network_args = ["--timeout", "30", "--retries", "3"]
-            if extra_index_url:
-                network_args.extend(["--extra-index-url", extra_index_url])
-            command: tuple[str | Path, ...] = (
-                pip,
-                "-m",
-                "pip",
-                "install",
-                "--disable-pip-version-check",
-                *network_args,
-                "--no-build-isolation",
-                "-r",
-                requirements,
+        if node.get("install_requirements", True) and requirements.is_file():
+            python = COMFYUI_VENV / "bin" / "python"
+            if not python.exists():
+                raise RuntimeError(f"ComfyUI's Python environment is not ready: {COMFYUI_VENV}")
+            returncode, output = await install_node_requirements(
+                requirements, python, self._run_process, needs_build_isolation,
+                extra_index_url=str(node.get("requirements_extra_index_url") or "").strip(),
             )
-            returncode, output = await self._run_process(*command)
-            if returncode and needs_build_isolation(output):
-                self.update(message=f"Retrying {name} with build isolation…")
-                command = tuple(part for part in command if part != "--no-build-isolation")
-                returncode, output = await self._run_process(*command)
             if returncode:
-                raise RuntimeError(
-                    f"Dependencies failed for {name}: {output[-500:]}"
-                )
+                raise RuntimeError(f"Dependencies failed for {node['name']}: {output[-1500:]}")
+
+    async def _ensure_system_packages(self, packages: list[str]) -> None:
+        if not packages:
+            return
+        await ensure_system_tools(
+            packages, self._run_process,
+            lambda message: self.update(stage="installing", message=message, bytes_per_second=0),
+        )
+
+    async def _verify_custom_nodes(self, nodes: list[dict[str, Any]]) -> None:
+        if not nodes:
+            return
+        self.check_cancelled()
+        self.update(stage="verifying", message="Verifying custom nodes in ComfyUI…", bytes_per_second=0)
+        try:
+            async with httpx.AsyncClient(timeout=60) as client:
+                response = await client.get(f"{COMFYUI_LOCAL_URL}/object_info")
+                response.raise_for_status()
+                registry = response.json()
+            if not isinstance(registry, dict) or not registry:
+                raise ValueError("ComfyUI returned an empty node registry")
+        except (httpx.HTTPError, ValueError) as exc:
+            raise RuntimeError(
+                "Could not verify custom nodes in ComfyUI. Setup is not ready; "
+                "check the ComfyUI service and rerun setup."
+            ) from exc
+        checks = node_registration_checks(nodes, registry)
+        for check in checks:
+            if check["name"] in self.node_failures:
+                check.update(status="error", message=self.node_failures[check["name"]])
+        self.update(node_checks=checks)
+        failures = [check for check in checks if check["status"] != "verified"]
+        if failures:
+            names = "; ".join(f"{check['name']}: {check['message']}" for check in failures)
+            raise RuntimeError("Custom nodes are not ready. " + names)
 
     async def _install_custom_nodes(self, nodes: list[dict[str, Any]]) -> None:
         CUSTOM_NODES_DIR.mkdir(parents=True, exist_ok=True)
+        self.node_failures.clear()
+        checks = [{"name": node["name"], "status": "pending", "message": "Waiting to install."}
+                  for node in nodes]
+        self.update(node_checks=checks)
         for index, node in enumerate(nodes):
             self.check_cancelled()
-            name = str(node.get("name", "")).strip() or f"Custom node {index + 1}"
-            progress = 88 + (index / max(len(nodes), 1)) * 10
-            self.update(
-                stage="installing",
-                message=f"Installing custom node {name}…",
-                current_file=name,
-                file_index=index + 1,
-                file_count=len(nodes),
-                percent=progress,
-                bytes_per_second=0,
-            )
-            try:
-                await self._install_custom_node(node)
-            except InstallCancelled:
-                raise
-            except Exception as exc:
-                self.add_warning(f"{name}: {exc}")
-                self.update(
-                    message=f"{name} failed — skipped; continuing setup…",
-                    percent=88 + ((index + 1) / max(len(nodes), 1)) * 10,
-                )
-
+            name = node["name"]
+            self.update(stage="installing", message=f"Installing custom node {name}…",
+                        current_file=name, file_index=index + 1, file_count=len(nodes),
+                        percent=88 + (index / max(len(nodes), 1)) * 10, bytes_per_second=0)
+            for attempt in range(2):
+                try:
+                    await self._install_custom_node(node)
+                    checks[index].update(status="installed", message="Installed; awaiting ComfyUI verification.")
+                    break
+                except InstallCancelled:
+                    raise
+                except Exception as exc:
+                    if attempt == 0 and any(marker in str(exc).lower() for marker in _NETWORK_FAILURE_MARKERS):
+                        self.update(message=f"Retrying {name} after a network error…")
+                        await asyncio.sleep(2)
+                        self.check_cancelled()
+                        continue
+                    self.node_failures[name] = str(exc)
+                    checks[index].update(status="error", message=str(exc))
+                    self.add_warning(f"{name}: {exc}")
+                    break
+            self.update(node_checks=checks)
         self.update(percent=99, message="Finishing workflow setup…")
 
 
@@ -2258,7 +2212,7 @@ custom_model_controller = CustomModelController()
 custom_node_controller = CustomNodeController()
 app = FastAPI(
     title="dsnn Model Grabber",
-    version="1.5.0",
+    version="1.6.0",
     docs_url=None,
     redoc_url=None,
 )

@@ -89,8 +89,8 @@ KRQW2.1 installs REDGPT FP8, Krea 2 Turbo FP8, its Civitai LoRA, Qwen3-VL
 8B BF16 and 4B FP8 text encoders, Qwen Image 2.1 VAE BF16 and Krea 2 Real VAE.
 Its seven resources are selected by default in the expandable tile. Files already
 installed by another preset are verified and reused. The preset updates ComfyUI
-before setup and installs five pinned node packs: rgthree, Custom Scripts,
-SeedVR2 Video Upscaler, Easy Use and Regeneration Gate. The gate retains its
+before setup and installs six pinned node packs: rgthree, Custom Scripts,
+SeedVR2 Video Upscaler, Easy Use, Regeneration Gate and Bond Node Suite. The gate retains its
 upstream repository and node identifiers so existing KRQW2.1 workflows load.
 Set `CIVITAI_TOKEN` (or `CIVITAI_API_TOKEN`) on the instance for REDGPT and the
 Civitai LoRA; without it those two files are skipped with warnings. Hugging Face
@@ -99,9 +99,35 @@ dependencies; it does not include the product workflow JSON. SeedVR2 can downloa
 its own upscaler weights when its node first runs; they are not among these seven
 files.
 
-Each preset installs its models and custom nodes. An individual failure is
-reported as a warning while remaining items continue. Product workflow JSON
-files are deliberately not included.
+Model download failures are reported as warnings while remaining files continue.
+Custom-node or system-tool failures prevent a workflow from being marked ready.
+
+Every pipeline includes Bond Node Suite, pinned to a reviewed Git commit.
+ExifTool is installed as the Debian package `libimage-exiftool-perl`, together
+with FFmpeg. Both are baked into new images using `apt-get`; older images install
+missing tools automatically during workflow setup. The launcher checks that
+`exiftool -ver` and `ffmpeg -version` work before proceeding.
+
+Custom nodes are cloned into a temporary folder and exposed to ComfyUI only
+after their pinned checkout and package initializer are present. Python
+requirements use ComfyUI's configured environment and constrain its existing
+Torch, TorchVision, TorchAudio, TorchCodec and NumPy versions. Retrying a manual
+node install repairs requirements even when the repository is already there.
+
+After setup, the launcher restarts ComfyUI and checks its live `/object_info`
+registry for every selected node pack. SeedVR2 requires all four of its node
+types; Bond requires all 26. The setup panel lists each package's verification
+result. Failed installs, missing registrations and failed restarts produce an
+error instead of a ready message. Transient network failures receive one retry.
+The existing HF CLI transfer path is unchanged.
+
+The initial setup waits for ComfyUI and its configured Python environment.
+`COMFYUI_READY_TIMEOUT` defaults to 600 seconds; `COMFYUI_RESTART_TIMEOUT`
+defaults to 300 seconds to allow custom-node imports on the first restart.
+
+The bundled Windows installers also include Bond Node Suite. On Windows,
+install ExifTool separately and add `exiftool.exe` to PATH; the `apt-get`
+installation applies to the Linux RunPod and Vast templates.
 
 Resources are grouped from their destination folder (diffusion models, LoRAs,
 VAEs, text encoders, upscale models and support resources). Existing entries

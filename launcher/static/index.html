@@ -8,7 +8,7 @@
       content="Install a complete dsnn ComfyUI workflow with one click."
     />
     <title>dsnn Model Grabber</title>
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/styles.css?v=1.6.0" />
   </head>
   <body>
     <header class="topbar">
@@ -83,6 +83,10 @@
             </div>
 
             <div id="job-warnings" class="job-warnings" hidden></div>
+            <details id="job-node-checks" class="job-node-checks" hidden>
+              <summary id="job-node-summary">Custom-node checks</summary>
+              <ul id="job-node-results"></ul>
+            </details>
             <p id="job-error" class="job-error" hidden></p>
 
             <div class="job-actions">
@@ -164,6 +168,6 @@
       </main>
     </div>
 
-    <script src="/app.js" defer></script>
+    <script src="/app.js?v=1.6.0" defer></script>
   </body>
 </html>
