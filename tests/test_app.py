@@ -72,8 +72,8 @@ def test_health_and_public_catalog() -> None:
         response = client.get("/api/catalog")
         assert response.status_code == 200
         workflows = response.json()["workflows"]
-        assert len(workflows) == 6
-        assert sum(not item.get("disabled", False) for item in workflows) == 6
+        assert len(workflows) == 7
+        assert sum(not item.get("disabled", False) for item in workflows) == 7
         assert "files" not in workflows[0]
         assert "custom_nodes" not in workflows[0]
         assert "url" not in workflows[0]
@@ -145,6 +145,7 @@ def test_catalog_contains_installers_but_no_product_workflows() -> None:
         "motion-control-god-edition",
         "minimax-h3",
         "krqw2-1",
+        "snn-krast",
     ]
     assert {
         "image-generation",
@@ -157,7 +158,14 @@ def test_catalog_contains_installers_but_no_product_workflows() -> None:
     for installer in enabled:
         for file_spec in installer["files"]:
             destination = file_spec["destination"].lower()
-            assert not destination.endswith(".json")
+            if destination.endswith(".json"):
+                assert installer["id"] == "snn-krast"
+                assert destination in {
+                    "models/segformer_b2_clothes/config.json",
+                    "models/segformer_b2_clothes/preprocessor_config.json",
+                    "models/vitmatte/config.json",
+                    "models/vitmatte/preprocessor_config.json",
+                }
             assert "workflow" not in destination
             assert file_spec["size_bytes"] > 0
             assert len(file_spec["sha256"]) == 64

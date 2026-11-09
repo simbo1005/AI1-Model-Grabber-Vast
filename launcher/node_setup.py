@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+import hashlib
 import shutil
 import tempfile
 from collections.abc import Awaitable, Callable
@@ -116,6 +117,44 @@ async def install_requirements(
         return code, output
 
 
+VISION_INSTALLER_SHA256 = "2f5d75800eb3aab3854e88da2697a75c6de526e9f95a83d4963d392053e786f6"
+
+
+async def install_reviewed_post_install(
+    node: dict[str, Any], repository: Path, python: Path, run: RunProcess,
+    support_requirements: Path,
+) -> None:
+    """Run only the reviewed vision-wheel installer with ComfyUI's own Python.
+
+    Its prebuilt wheel is installed with --no-deps; it never compiles a backend
+    or changes Torch/numpy to satisfy wheel metadata.
+    """
+    script = node.get("post_install")
+    if not script:
+        return
+    if (script != "install.py"
+            or node.get("name") != "ComfyUI_LC_Vision_nodes"
+            or str(node.get("repo", "")).rstrip("/").removesuffix(".git").lower()
+                != "https://github.com/lonecatone23/comfyui_lc_vision_nodes"
+            or node.get("ref") != "d6cbdb5712b1ba4b32a92182ee9d537e6ebd22e2"):
+        raise RuntimeError("Unsupported custom-node post-install script.")
+    source = repository / script
+    if (source.is_symlink() or not source.is_file()
+            or hashlib.sha256(source.read_bytes()).hexdigest()
+                != VISION_INSTALLER_SHA256):
+        raise RuntimeError("The reviewed LC Vision installer is missing or changed.")
+    if not python.is_file():
+        raise RuntimeError("ComfyUI's Python environment is not ready for the vision backend.")
+    code, output = await install_requirements(
+        support_requirements, python, run, lambda output: False,
+    )
+    if code:
+        raise RuntimeError("Vision support dependencies failed: " + output[-1500:])
+    code, output = await run(python, source)
+    if code:
+        raise RuntimeError("LC Vision's CUDA wheel could not be installed or imported: " + output[-1500:])
+
+
 async def prepare_repository(
     node: dict[str, Any], root: Path, run: RunProcess
 ) -> Path:
@@ -189,11 +228,28 @@ def node_registration_checks(
         required = node.get("required_node_types", [])
         missing = [node_type for node_type in required
                    if not isinstance(registry.get(node_type), dict)]
-        valid = not missing and (bool(registered) or bool(required))
+        unavailable = []
+        for node_type, options in node.get("required_input_options", {}).items():
+            definition = registry.get(node_type, {})
+            inputs = definition.get("input", {}) if isinstance(definition, dict) else {}
+            for input_name, expected in options.items():
+                spec = inputs.get("required", {}).get(input_name) or inputs.get("optional", {}).get(input_name)
+                choices = []
+                if isinstance(spec, (list, tuple)) and spec:
+                    if isinstance(spec[0], list):
+                        choices = spec[0]
+                    elif len(spec) > 1 and isinstance(spec[1], dict):
+                        choices = spec[1].get("options", [])
+                for value in expected:
+                    if value not in choices:
+                        unavailable.append(f"{node_type}.{input_name}: {value}")
+        valid = not missing and not unavailable and (bool(registered) or bool(required))
         if valid:
             message = "Loaded in ComfyUI."
         elif missing:
             message = "Missing node types: " + ", ".join(missing)
+        elif unavailable:
+            message = "Missing required options: " + ", ".join(unavailable)
         else:
             message = "ComfyUI did not register this package; check its startup import error."
         checks.append({

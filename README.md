@@ -1,5 +1,13 @@
 # dsnn AI1 Model Grabber for Vast.ai
 
+## SNN KRAST pipeline
+
+A separate **SNN KRAST** tile installs the original BF16 workflow stack from
+Hugging Face, including `simbo926/KrastRaw` (dataset), its four LoRAs, vision
+models and masking resources. All 15 resources are checked by default and use
+the existing high-performance HF CLI path. The original sampler and every
+required node are installed and verified. [Setup and workflow instructions](docs/snn-krast.md).
+
 A Vast.ai-native version of the dsnn workflow launcher. It extends Vast.ai's
 official ComfyUI image and integrates the launcher with the Instance Portal,
 Supervisor, JupyterLab, ComfyUI, authentication, logs, and `/workspace` layout.

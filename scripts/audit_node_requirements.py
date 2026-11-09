@@ -38,10 +38,19 @@ def raw_requirements(repo: str, ref: str) -> str:
 
 
 def main() -> int:
+    # Bundled nodes have no requirements.txt and are verified by immutable layer
+    # and per-file hashes instead of a Git checkout.
+    sys.path.insert(0, str(ROOT))
+    from launcher.bundled_nodes import validate_bundle_spec
+    for workflow in CATALOG["workflows"]:
+        for node in workflow.get("custom_nodes", []):
+            if node.get("source") == "image_bundle":
+                validate_bundle_spec(node)
     nodes = {
         (node["name"], node["repo"], node["ref"])
         for workflow in CATALOG["workflows"]
         for node in workflow.get("custom_nodes", [])
+        if node.get("source") != "image_bundle"
     }
     failures: list[str] = []
     for name, repo, ref in sorted(nodes):

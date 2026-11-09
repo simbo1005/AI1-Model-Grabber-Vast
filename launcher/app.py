@@ -22,10 +22,13 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from launcher.bundled_nodes import prepare_bundled_node
+from launcher.krast_setup import ensure_placeholder
 from launcher.impact_compat import repair_impact_frontend
 from launcher.node_setup import (
     ensure_system_tools,
     install_requirements as install_node_requirements,
+    install_reviewed_post_install,
     node_registration_checks,
     prepare_repository,
     repair_seedvr_optional_imports,
@@ -806,7 +809,7 @@ def needs_build_isolation(output: str) -> bool:
 def process_timeout(command: tuple[str | Path, ...]) -> float:
     """Bound network and package-manager operations without penalising normal work."""
     values = tuple(str(part) for part in command)
-    if "pip" in values:
+    if "pip" in values or any(Path(value).name == "install.py" for value in values[1:]):
         return 1800
     if values and values[0] == "git":
         return 60 if any(part in {"remote", "cat-file", "rev-parse"} for part in values) else 600
@@ -1422,7 +1425,12 @@ class JobController:
                             f"ComfyUI restart failed; custom nodes could not be verified: {exc}"
                         ) from exc
                     self.add_warning(f"Automatic ComfyUI restart: {exc}")
-                await self._verify_custom_nodes(workflow.get("custom_nodes", []))
+                checks = list(workflow.get("custom_nodes", []))
+                if workflow.get("required_core_node_types"):
+                    checks.append({"name": "ComfyUI core",
+                                   "required_node_types": workflow["required_core_node_types"],
+                                   "required_input_options": workflow.get("required_core_input_options", {})})
+                await self._verify_custom_nodes(checks)
             warning_count = len(self.state.warnings)
             self.update(
                 status="complete",
@@ -1675,6 +1683,9 @@ class JobController:
         if model_links:
             self.update(stage="installing", message="Placing custom-node model files…")
             await self._apply_model_links(model_links)
+        if workflow.get("prepare_krast_placeholder"):
+            self.update(stage="installing", message="Preparing the reference-image input…")
+            await ensure_placeholder(COMFYUI_LOCAL_URL)
 
     async def _download_file(
         self,
@@ -2126,7 +2137,10 @@ class JobController:
                 raise RuntimeError(f"Could not place {source.name} for its custom node.")
 
     async def _install_custom_node(self, node: dict[str, Any]) -> None:
-        destination = await prepare_repository(node, CUSTOM_NODES_DIR, self._run_process)
+        if node.get("source") == "image_bundle":
+            destination = await prepare_bundled_node(node, CUSTOM_NODES_DIR)
+        else:
+            destination = await prepare_repository(node, CUSTOM_NODES_DIR, self._run_process)
         if node.get("repo", "").rstrip("/").removesuffix(".git").lower() == (
             "https://github.com/numz/comfyui-seedvr2_videoupscaler"
         ):
@@ -2147,6 +2161,10 @@ class JobController:
             )
             if returncode:
                 raise RuntimeError(f"Dependencies failed for {node['name']}: {output[-1500:]}")
+        await install_reviewed_post_install(
+            node, destination, COMFYUI_VENV / "bin" / "python",
+            self._run_process, SOURCE_ROOT / "launcher" / "requirements" / "krast-vision.txt",
+        )
 
     async def _ensure_system_packages(self, packages: list[str]) -> None:
         if not packages:

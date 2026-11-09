@@ -1,5 +1,5 @@
 {
-  "version": 19,
+  "version": 20,
   "workflows": [
     {
       "id": "krea-2-extended",
@@ -1408,6 +1408,312 @@
         "libimage-exiftool-perl",
         "ffmpeg"
       ]
+    },
+    {
+      "id": "snn-krast",
+      "title": "SNN KRAST",
+      "description": "Original KRAST BF16 v3 workflow resources: four LoRAs, Qwen3-VL text/vision models, VAE and mask models. All model downloads use Hugging Face CLI. Includes the original custom sampler, caption selector, LC nodes, LUT, Bond and ExifTool. Load the editable workflow from your private custom_wf repository.",
+      "badge": "HF CLI",
+      "accent": "#b88746",
+      "estimated_size": "Approx. 48.4 GB",
+      "update_comfyui": true,
+      "files": [
+        {
+          "name": "KRAST Raw BF16 v3 (original precision)",
+          "url": "https://huggingface.co/datasets/simbo926/KrastRaw/resolve/a23a479cd6a0c22359b18a1cc6df5f1636617eb1/Krast-Raw-bf16.safetensors",
+          "destination": "models/diffusion_models/krastBf16_v3_bf16.safetensors",
+          "size_bytes": 25640200576,
+          "sha256": "3b2c89871d08bb13e8bf166edb9fd2e23c1349b9b48a0e1cad095f3f03a03335",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Qwen3-VL 4B BF16 text encoder",
+          "url": "https://huggingface.co/Comfy-Org/Qwen3-VL/resolve/02f0d3eefb59528799653d16735818801177ef1f/text_encoders/qwen3vl_4b_bf16.safetensors",
+          "destination": "models/text_encoders/text_encoders/qwen3vl_4b_bf16.safetensors",
+          "size_bytes": 8875719384,
+          "sha256": "36f3ff447ef59201722e8f9ce6020c9819fdcfba6aa2608c4e09b1c0ce114e34",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Wan 2.1 VAE",
+          "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/123acf1cc74bccbb9bfff8ac1ee72edc08c2341d/split_files/vae/wan_2.1_vae.safetensors",
+          "destination": "models/vae/split_files/vae/wan_2.1_vae.safetensors",
+          "size_bytes": 253815318,
+          "sha256": "2fc39d31359a4b0a64f55876d8ff7fa8d780956ae2cb13463b0223e15148976b",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "krea2_turbo_distill_r256.safetensors",
+          "url": "https://huggingface.co/RunningHubAI/rh-krea2-turbo-distill-r256-lora/resolve/1bef456f4c44e4b2b9e18e87243e848d3c86f758/krea2_turbo_distill_r256.safetensors",
+          "destination": "models/loras/krea2_turbo_distill_r256.safetensors",
+          "size_bytes": 1872209738,
+          "sha256": "ca178303453e1152d0e08a36240509b4711c3ccb7596915a20e910c973dd42ae",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Krea2_TextFusion_Refusal_Reduction.safetensors",
+          "url": "https://huggingface.co/Quiho/Krea2_TextFusion_Refusal-Reduction_LoRA_v1.0_lora/resolve/b63e565916a622f060123b2dd22a06aee875c267/Krea2_TextFusion_Refusal_Reduction.safetensors",
+          "destination": "models/loras/Krea/Krea2_TextFusion_Refusal_Reduction.safetensors",
+          "size_bytes": 27665664,
+          "sha256": "84ec722ddab93f6489c5315bca25de5dd1a7b7ec5045a3c4ce2f97f62e54e8e6",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "lenovo_krea2.safetensors",
+          "url": "https://huggingface.co/yufusoft/Lenovo_UltraReal_Krea2/resolve/b8492ff9aca2c00acf4aea9ad99ed78b3829e096/lenovo_krea2.safetensors",
+          "destination": "models/loras/lenovo_krea2.safetensors",
+          "size_bytes": 114324736,
+          "sha256": "6967840059e54d0ca6771ae00acdc5979266f761175a8c9380f23f1a3723e9a2",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "RealisticSnapshot Krea2 V2 LoRA (verified HF mirror)",
+          "url": "https://huggingface.co/stormi2/realisticsnapshot2/resolve/c4c3516f714f7a3456f1b8f7a4ec96058f5e0dfb/RealisticSnapshotKrea2V2.safetensors",
+          "destination": "models/loras/RealisticSnapshotKrea2V2.safetensors",
+          "size_bytes": 1562410304,
+          "sha256": "bc064297da569e9f25fe362d8210b291093fad5fa4f59ea982fa4f7c4151e2bc",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Vision model (Qwen3-VL 8B)",
+          "url": "https://huggingface.co/prithivMLmods/Qwen3-VL-8B-Instruct-abliterated-v2-GGUF/resolve/cc4130ded656c7e6300d617bb107eed4dedac152/Qwen3-VL-8B-Instruct-abliterated-v2.Q8_0.gguf",
+          "destination": "models/LLM/GGUF/Qwen3-VL-8B-Instruct-abliterated-v2.Q8_0.gguf",
+          "size_bytes": 8709520480,
+          "sha256": "9c381dacf22fe012decb14461585500e017c45b3a046943336c7923b48822a7c",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Vision projector (Qwen3-VL)",
+          "url": "https://huggingface.co/prithivMLmods/Qwen3-VL-8B-Instruct-abliterated-v2-GGUF/resolve/cc4130ded656c7e6300d617bb107eed4dedac152/Qwen3-VL-8B-Instruct-abliterated-v2.mmproj-f16.gguf",
+          "destination": "models/LLM/GGUF/Qwen3-VL-8B-Instruct-abliterated-v2.mmproj-f16.gguf",
+          "size_bytes": 1159030368,
+          "sha256": "e360d32141265b9956edaed10d0011e02b31a7d847063beac4863a3aaf438b6d",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Person mask model",
+          "url": "https://huggingface.co/mattmdjaga/segformer_b2_clothes/resolve/584abc1e1d260e23c0fc627c5217a09b2b461046/model.safetensors",
+          "destination": "models/segformer_b2_clothes/model.safetensors",
+          "size_bytes": 109493236,
+          "sha256": "8f86fd90c567afd4370b3cc3a7e81ed767a632b2832a738331af660acc0c4c68",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Person mask config",
+          "url": "https://huggingface.co/mattmdjaga/segformer_b2_clothes/resolve/584abc1e1d260e23c0fc627c5217a09b2b461046/config.json",
+          "destination": "models/segformer_b2_clothes/config.json",
+          "size_bytes": 1727,
+          "sha256": "4b5127ca00fe61187b6cc6c232c9e19326ed228683f8f5c221790be9cc196a6e",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Person mask preprocessor",
+          "url": "https://huggingface.co/mattmdjaga/segformer_b2_clothes/resolve/584abc1e1d260e23c0fc627c5217a09b2b461046/preprocessor_config.json",
+          "destination": "models/segformer_b2_clothes/preprocessor_config.json",
+          "size_bytes": 271,
+          "sha256": "a608e3a47dcfba8dc052a766babb4b6c963285ab4f176bc6c1eb2b257fd3ad93",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Edge refinement model",
+          "url": "https://huggingface.co/hustvl/vitmatte-small-composition-1k/resolve/6a58ad7646403c1df626fbd746900aec7361ea1d/model.safetensors",
+          "destination": "models/vitmatte/model.safetensors",
+          "size_bytes": 103294572,
+          "sha256": "bda9289db1bb6762d978b42d1c62ae3f34daf7497171a347a1d09657efd788cb",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Edge refinement config",
+          "url": "https://huggingface.co/hustvl/vitmatte-small-composition-1k/resolve/6a58ad7646403c1df626fbd746900aec7361ea1d/config.json",
+          "destination": "models/vitmatte/config.json",
+          "size_bytes": 837,
+          "sha256": "ae1006f5a83227048b563b2e60709d4203e432b2276949ebef41a8cfeeeaf45f",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Edge refinement preprocessor",
+          "url": "https://huggingface.co/hustvl/vitmatte-small-composition-1k/resolve/6a58ad7646403c1df626fbd746900aec7361ea1d/preprocessor_config.json",
+          "destination": "models/vitmatte/preprocessor_config.json",
+          "size_bytes": 284,
+          "sha256": "0db558038b96a3f5c97e46d4ec8966fcc479e9aa58a391bca60b5094a5f7fee0",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        }
+      ],
+      "custom_nodes": [
+        {
+          "name": "rgthree-comfy",
+          "repo": "https://github.com/rgthree/rgthree-comfy.git",
+          "ref": "bc48c6aaeca87bedbc14245d89f9bc6be37a630e",
+          "install_requirements": true,
+          "required_node_types": [
+            "Power Lora Loader (rgthree)"
+          ]
+        },
+        {
+          "name": "ComfyUI-SamplerV3",
+          "source": "image_bundle",
+          "source_image": "velmcomfy/studio-legacy-4dd5158486@sha256:e33fdbabe0430f217b680d6b947f41af1eb915c5795b89bf533e0a70f99f24ef",
+          "source_layer": "sha256:9c480306a3532d1bf4d10c72c4ffb976e303b3c35cc0e681b9d0cd705c5ee11c",
+          "install_requirements": false,
+          "required_node_types": [
+            "MrTeezKSampler"
+          ]
+        },
+        {
+          "name": "mrteez_prompt_source",
+          "source": "image_bundle",
+          "source_image": "velmcomfy/studio-legacy-4dd5158486@sha256:e33fdbabe0430f217b680d6b947f41af1eb915c5795b89bf533e0a70f99f24ef",
+          "source_layer": "sha256:9c480306a3532d1bf4d10c72c4ffb976e303b3c35cc0e681b9d0cd705c5ee11c",
+          "install_requirements": false,
+          "required_node_types": [
+            "MrTeezPromptSource"
+          ]
+        },
+        {
+          "name": "ComfyUI_LC123_nodes",
+          "repo": "https://github.com/lonecatone23/ComfyUI_LC123_nodes.git",
+          "ref": "04041dbeb32cb1f3b8c269882da1d419d1242c61",
+          "install_requirements": true,
+          "required_node_types": [
+            "LCTextRemove",
+            "LCJoinStrings",
+            "LCPositive",
+            "LCPreviewMask",
+            "LCSkinBeauty",
+            "LCApplyLUT",
+            "LCNaturalLook",
+            "LCFilmGrain",
+            "LCImageDenoise",
+            "LCColorMatch"
+          ],
+          "required_input_options": {
+            "LCApplyLUT": {
+              "lut_name": [
+                "LC_Crushed_Blacks.cube"
+              ]
+            }
+          }
+        },
+        {
+          "name": "ComfyUI_LC_MaskMaker_nodes",
+          "repo": "https://github.com/lonecatone23/ComfyUI_LC_MaskMaker_nodes.git",
+          "ref": "d5868e871a48ae60651299051af7c25206e77847",
+          "install_requirements": true,
+          "required_node_types": [
+            "LCPersonMask"
+          ]
+        },
+        {
+          "name": "ComfyUI_LC_Vision_nodes",
+          "repo": "https://github.com/lonecatone23/ComfyUI_LC_Vision_nodes.git",
+          "ref": "d6cbdb5712b1ba4b32a92182ee9d537e6ebd22e2",
+          "install_requirements": true,
+          "required_node_types": [
+            "LCVisionLoader",
+            "LCVisionCaption"
+          ],
+          "post_install": "install.py"
+        },
+        {
+          "name": "Bond-Node-Suite",
+          "repo": "https://github.com/bondngn-studios/Bond-Node-Suite.git",
+          "ref": "8d2f6ce3abd471442bfd6785226154ec605aea0a",
+          "install_requirements": true,
+          "required_node_types": [
+            "PromptJSONSelector",
+            "BatchIntPick",
+            "BatchStringPick",
+            "BondPromptArrayIterator",
+            "CartesianIndexDriverImg",
+            "CartesianIndexDriverImgPrmpt",
+            "RangeStepper",
+            "BondSwitch2to1",
+            "BondSwitch1to2",
+            "BondLoadImage",
+            "BondLoadImageFromPath",
+            "BondLoadVideoFromPath",
+            "BondLoadVideo",
+            "BondBatchImageLoader",
+            "BondShowText",
+            "BondReadMetadata",
+            "BondStripMetadata",
+            "BondGlobalMetadataSettings",
+            "BondSaveWithCustomMetadata",
+            "BondSaveVideoWithMetadata",
+            "BondText",
+            "BondTextConcatenate",
+            "BondSaveTextFile",
+            "BondBatchAudioLoader",
+            "BondResolution",
+            "BondBigNumber"
+          ]
+        }
+      ],
+      "system_packages": [
+        "libimage-exiftool-perl",
+        "ffmpeg"
+      ],
+      "prepare_krast_placeholder": true,
+      "required_core_node_types": [
+        "UNETLoader",
+        "CLIPLoader",
+        "VAELoader",
+        "SaveImage",
+        "CLIPTextEncode",
+        "ModelSamplingAuraFlow",
+        "VAEDecode",
+        "ImageAddNoise",
+        "EmptySD3LatentImage",
+        "ImageScaleBy",
+        "VAEEncode",
+        "MaskToImage",
+        "ImageToMask",
+        "ConditioningConcat",
+        "ImageBlend",
+        "LoadImage"
+      ],
+      "required_core_input_options": {
+        "CLIPLoader": {
+          "type": [
+            "krea2"
+          ]
+        },
+        "LoadImage": {
+          "image": [
+            "studio_placeholder.png"
+          ]
+        }
+      }
     }
   ]
 }
