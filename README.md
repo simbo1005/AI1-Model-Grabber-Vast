@@ -2,11 +2,13 @@
 
 ## SNN KRAST pipeline
 
-A separate **SNN KRAST** tile installs the original BF16 workflow stack from
-Hugging Face, including `simbo926/KrastRaw` (dataset), its four LoRAs, vision
-models and masking resources. All 15 resources are checked by default and use
-the existing high-performance HF CLI path. The original sampler and every
-required node are installed and verified. [Setup and workflow instructions](docs/snn-krast.md).
+The **SNN KRAST** tile installs the original image-generation stack plus the
+FaceSwap/SeedVR2 workflow resources: **41 default-selected files, about 101 GB**.
+39 resources use the existing fast HF CLI path; RedQW and its companion LoRA
+use their verified Civitai sources. Set `HF_TOKEN` and `CIVITAI_TOKEN` in your
+template. The installer checks all 62 workflow node types, enables the baked
+SageAttention 2 backend and runs automatic scratch warmup jobs. Your uploaded
+workflow is unchanged. [Setup and workflow instructions](docs/snn-krast.md).
 
 A Vast.ai-native version of the dsnn workflow launcher. It extends Vast.ai's
 official ComfyUI image and integrates the launcher with the Instance Portal,
@@ -33,8 +35,8 @@ Workflow tiles expand into per-resource checkboxes with live selected-size total
 Use either public registry mirror with the same tag:
 
 ```text
-Docker Hub: sdcioba/comfyui-workflow-launcher-vast:<tag>
-GHCR:       ghcr.io/simbo1005/comfyui-workflow-launcher-vast:<tag>
+Docker Hub: sdcioba/comfyui-workflow-launcher-vast:1.4-test
+GHCR:       ghcr.io/simbo1005/comfyui-workflow-launcher-vast:1.4-test
 ```
 
 Both references are produced by the same build. GHCR provides an alternative
@@ -51,7 +53,7 @@ Docker options:
 ```
 
 Use at least 80 GB of disk for Krea 2. Use 100 GB for general use and at least
-130 GB for the largest installer. No persistent volume is required.
+150 GB for the full SNN KRAST selection and working space. No persistent volume is required.
 
 For large image pulls and model downloads, prefer a Verified or Secure Cloud
 host with at least 1,000 MB/s disk speed (2,000+ MB/s is better), at least 500
