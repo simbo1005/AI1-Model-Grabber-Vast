@@ -100,3 +100,13 @@ coerces a nonempty string to `true`, so this enables model caching rather than
 causing a validation rejection. At your request the original is kept unchanged.
 The separate scratch warmup uses `false` for its own job to avoid retaining the
 upscaler on the GPU before warming the diffusion models.
+
+
+## Publishing launcher-only changes
+
+The publishing workflow accepts an optional `runtime_base` containing a digest
+from this image's own Docker Hub repository. This reuses the tested native
+Torch/SageAttention layers and replaces only launcher/catalog files. A full
+build remains the default for native dependency or startup-script changes.
+The immutable base is validated before building; provider entrypoints, native
+libraries and wheel fingerprints are inherited unchanged.
