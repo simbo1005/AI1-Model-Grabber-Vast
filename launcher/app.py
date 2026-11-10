@@ -24,6 +24,7 @@ from pydantic import BaseModel
 
 from launcher.bundled_nodes import prepare_bundled_node
 from launcher.krast_setup import ensure_placeholder
+from launcher.warmup import run_warmup
 from launcher.impact_compat import repair_impact_frontend
 from launcher.node_setup import (
     ensure_system_tools,
@@ -143,6 +144,7 @@ class JobState:
     jupyter_url: str = ""
     restart_required: bool = False
     comfy_restarted: bool = False
+    warmup_status: str = "not-requested"
     started_at: str | None = None
     completed_at: str | None = None
     updated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
@@ -1431,6 +1433,27 @@ class JobController:
                                    "required_node_types": workflow["required_core_node_types"],
                                    "required_input_options": workflow.get("required_core_input_options", {})})
                 await self._verify_custom_nodes(checks)
+                if workflow.get("warmup_profile"):
+                    if os.getenv("LAUNCHER_WARMUP", "1").lower() in {"0", "false", "off"}:
+                        self.state.warmup_status = "disabled"
+                    elif self.state.warnings:
+                        self.state.warmup_status = "deferred"
+                        self.add_warning("Warmup deferred until missing resources have been installed.")
+                    else:
+                        self.state.warmup_status = "running"
+                        try:
+                            self.state.warmup_status = await run_warmup(
+                                COMFYUI_LOCAL_URL, COMFYUI_DIR, workflow, self.check_cancelled,
+                                lambda message: self.update(stage="warming", message=message, bytes_per_second=0),
+                                self.add_warning,
+                            )
+                        except InstallCancelled:
+                            self.state.warmup_status = "cancelled"
+                            raise
+                        except Exception as exc:
+                            self.state.warmup_status = "failed"
+                            self.add_warning("Automatic warmup: "+str(exc))
+
             warning_count = len(self.state.warnings)
             self.update(
                 status="complete",
@@ -1525,7 +1548,9 @@ class JobController:
                 self.update(stage="preparing", message="Waiting for ComfyUI and its Python environment…")
                 await asyncio.sleep(1)
 
-    async def _update_comfyui(self) -> None:
+    async def _update_comfyui(self, ref: str = "") -> None:
+        if ref and not _COMMIT_SHA.fullmatch(ref):
+            raise RuntimeError("ComfyUI must use a pinned commit SHA.")
         git_directory = COMFYUI_DIR / ".git"
         requirements = COMFYUI_DIR / "requirements.txt"
         if not git_directory.is_dir():
@@ -1538,10 +1563,13 @@ class JobController:
             "git", "-C", COMFYUI_DIR, "rev-parse", "HEAD"
         )
         head_before = head_before.strip().lower()
-        _returncode, upstream_head = await self._run_process(
-            "git", "ls-remote", COMFYUI_UPSTREAM, "refs/heads/master"
-        )
-        upstream_head = upstream_head.split("\t", 1)[0].strip().lower()
+        if ref:
+            upstream_head = ref
+        else:
+            _returncode, upstream_head = await self._run_process(
+                "git", "ls-remote", COMFYUI_UPSTREAM, "refs/heads/master"
+            )
+            upstream_head = upstream_head.split("\t", 1)[0].strip().lower()
         if _COMMIT_SHA.fullmatch(head_before) and head_before == upstream_head:
             self.update(
                 stage="updating",
@@ -1565,11 +1593,11 @@ class JobController:
             ),
             (
                 "Downloading the latest ComfyUI version…",
-                ("git", "-C", COMFYUI_DIR, "fetch", "--prune", "origin", "master"),
+                ("git", "-C", COMFYUI_DIR, "fetch", "--prune", "origin", ref or "master"),
             ),
             (
                 "Installing the latest ComfyUI version…",
-                ("git", "-C", COMFYUI_DIR, "reset", "--hard", "origin/master"),
+                ("git", "-C", COMFYUI_DIR, "reset", "--hard", ref or "origin/master"),
             ),
         ]
         for message, command in commands:
@@ -1601,23 +1629,15 @@ class JobController:
             message="Installing the latest ComfyUI requirements…",
             bytes_per_second=0,
         )
-        returncode, output = await self._run_process(
-            python,
-            "-m",
-            "pip",
-            "install",
-            "--disable-pip-version-check",
-            "--timeout",
-            "30",
-            "--retries",
-            "3",
-            "-r",
-            requirements,
+        returncode, output = await install_node_requirements(
+            requirements, python, self._run_process, lambda output: False,
         )
         if returncode:
             raise RuntimeError(f"ComfyUI requirements failed: {output[-500:]}")
 
     async def _install_workflow(self, workflow: dict[str, Any]) -> None:
+        if workflow.get("require_sage_attention") and not Path("/opt/dsnn-attention/build.json").is_file():
+            raise RuntimeError("This SNN KRAST update requires the new SageAttention image (Vast 1.4-test / RunPod 2.4-test). Updating launcher files alone cannot add compiled CUDA kernels.")
         await self._wait_for_comfyui()
         files = workflow.get("files", [])
         nodes = workflow.get("custom_nodes", [])
@@ -1629,7 +1649,10 @@ class JobController:
             )
 
         if should_update_comfyui:
-            await self._update_comfyui()
+            if workflow.get("comfyui_ref"):
+                await self._update_comfyui(workflow["comfyui_ref"])
+            else:
+                await self._update_comfyui()
 
         await self._ensure_system_packages(workflow.get("system_packages", []))
 
@@ -1677,6 +1700,20 @@ class JobController:
                         percent=((index + 1) / max(len(files), 1)) * download_ceiling,
                         bytes_per_second=0,
                     )
+
+        if workflow.get("hf_cache_snapshots"):
+            selected = {file["destination"] for file in files}
+            for snapshot in workflow["hf_cache_snapshots"]:
+                needed = {snapshot["directory"]+"/"+name for name in snapshot["files"]}
+                if not needed.issubset(selected):
+                    self.add_warning("Depth preprocessor cache was not seeded: its complete resource set was not selected.")
+                    continue
+                code, output = await self._run_process(
+                    COMFYUI_VENV / "bin" / "python", Path(__file__).with_name("hf_cache.py"),
+                    COMFYUI_DIR, json.dumps([snapshot]),
+                )
+                if code:
+                    raise RuntimeError("Depth preprocessor cache could not be prepared: "+output[-1000:])
 
         if nodes:
             await self._install_custom_nodes(nodes)

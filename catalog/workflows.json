@@ -1,5 +1,5 @@
 {
-  "version": 20,
+  "version": 21,
   "workflows": [
     {
       "id": "krea-2-extended",
@@ -1412,10 +1412,10 @@
     {
       "id": "snn-krast",
       "title": "SNN KRAST",
-      "description": "Original KRAST BF16 v3 workflow resources: four LoRAs, Qwen3-VL text/vision models, VAE and mask models. All model downloads use Hugging Face CLI. Includes the original custom sampler, caption selector, LC nodes, LUT, Bond and ExifTool. Load the editable workflow from your private custom_wf repository.",
+      "description": "KRAST image generation plus FaceSwap WIP with Qwen 2.1 ControlNet, Florence, SAM2 and SeedVR2. Exact workflow model names and full precision. HF CLI transfers; existing Civitai sources for RedQW and its companion LoRA. SageAttention 2 requires the new image. Automatic scratch warmup after setup. Your private workflow and reference photos stay in custom_wf.",
       "badge": "HF CLI",
       "accent": "#b88746",
-      "estimated_size": "Approx. 48.4 GB",
+      "estimated_size": "Approx. 101.3 GB",
       "update_comfyui": true,
       "files": [
         {
@@ -1567,6 +1567,266 @@
           "auth": "none",
           "parallel": true,
           "default_selected": true
+        },
+        {
+          "name": "Krea2 Engineer V1 BF16 text encoder",
+          "url": "https://huggingface.co/BennyDaBall/Krea-2-Engineer-V1/resolve/8051413fd9cc5793ff856562834e345b0098be5d/Krea2-Engineer-V1-bf16.safetensors",
+          "destination": "models/text_encoders/Krea2-Engineer-V1-bf16.safetensors",
+          "size_bytes": 8875713440,
+          "sha256": "06bef753117e22c1afa721d387bb9154fcbad2a4eb6a7eac192221d1396c46ab",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "NiceGirls Krea 2 LoRA (step 6000)",
+          "url": "https://huggingface.co/simbo926/dsnn-krea2-resources/resolve/f5f37748fac6ca8f007211afd1932cf3acd99828/nicegirls_krea2_000006000.safetensors",
+          "destination": "models/loras/nicegirls_krea2_000006000.safetensors",
+          "size_bytes": 114324736,
+          "sha256": "25847a032823dbd634e5b9f79866319b174557bce753367e4a08fddfea7eb57b",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "r0mdl Krea 2 LoRA (step 2750)",
+          "url": "https://huggingface.co/simbo926/rmdl/resolve/2e12d333cda2b48dad44ad88b197541454cac780/r0mdl_000002750.safetensors",
+          "destination": "models/loras/r0mdl_000002750.safetensors",
+          "size_bytes": 457112016,
+          "sha256": "90f059102291bacf2b8760f87180b2c39178e8c34f20b279c445ba5c6bfabb17",
+          "auth": "huggingface",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Krea 2 Smartphone Photography slider LoRA",
+          "url": "https://huggingface.co/reverentelusarca/elusarcas-krea2-smartphone-photography-lora/resolve/de7c66a2f0078d2c17bcc02b1802f3e84104f285/krea-smartphone-photo-slider.safetensors",
+          "destination": "models/loras/krea-smartphone-photo-slider.safetensors",
+          "size_bytes": 28627768,
+          "sha256": "6468a57747ee8953036aedc28eba2034ad6355789151f4f85ef63260ed3fa2ce",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "KNP Krea 2 NSFW v4 LoRA",
+          "url": "https://huggingface.co/simbo926/dsnn-krea2-resources/resolve/f5f37748fac6ca8f007211afd1932cf3acd99828/KNP_000003000.safetensors",
+          "destination": "models/loras/KNP_000003000.safetensors",
+          "size_bytes": 457111960,
+          "sha256": "6ec564e04eed317ae24093b4907004ac59a7c528d19d025bb41b4d719c4d16ec",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Qwen3-VL 8B BF16 text encoder",
+          "url": "https://huggingface.co/Comfy-Org/Qwen3-VL/resolve/main/text_encoders/qwen3vl_8b_bf16.safetensors",
+          "destination": "models/text_encoders/qwen3vl_8b_bf16.safetensors",
+          "size_bytes": 17534334616,
+          "sha256": "68bdc82bc1b66851162ae656225e7e2068166b603db19bd5d5a3b90eb12669a9",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Qwen Image 2.1 VAE BF16",
+          "url": "https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/vae/qwen_image_2.1_vae_bf16.safetensors",
+          "destination": "models/vae/qwen_image_2.1_vae_bf16.safetensors",
+          "size_bytes": 675509688,
+          "sha256": "bb21f7473051e1ac368515dd3f2e15cd44d7a11748ee8823e1ddca3e4876b7c9",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "REDGPT FP8",
+          "url": "https://civitai.com/api/download/models/3370753?fileId=3258921",
+          "destination": "models/diffusion_models/redgptK2T2W6A8REDQW21_redqw21UNLOCKEDV2_fp8.safetensors",
+          "size_bytes": 7116801326,
+          "sha256": "0efb5aeb2b372025042e320c2e35c66ec6681ef54ad5de88a652ab19cc63ad92",
+          "auth": "civitai",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "KRQW2.1 Civitai LoRA",
+          "url": "https://civitai.com/api/download/models/3357315?fileId=3244894",
+          "destination": "models/loras/civitai_lora_3357315_3244894.safetensors",
+          "size_bytes": 79744352,
+          "sha256": "83aba822ad8ee10a1e836828f5088259d93bce7b5f3419b46dbc0258c2be46a9",
+          "auth": "civitai",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "SkinDiff Detail upscaler",
+          "url": "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/1x-ITF-SkinDiffDetail-Lite-v1.pth",
+          "destination": "models/upscale_models/1x-ITF-SkinDiffDetail-Lite-v1.pth",
+          "size_bytes": 20099337,
+          "sha256": "94d368b633614958f84f335b129fd85abd30200e8fbc575b859ba6762116222b",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Wan 2.1 VAE",
+          "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors",
+          "destination": "models/vae/wan_2.1_vae.safetensors",
+          "size_bytes": 253815318,
+          "sha256": "2fc39d31359a4b0a64f55876d8ff7fa8d780956ae2cb13463b0223e15148976b",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "loras / lenovo_qwen21.safetensors",
+          "url": "https://huggingface.co/gravedigga/loras/resolve/11b2b9b3d5ac76ea4d579720376bd00befcfd2b1/lenovo_qwen21.safetensors",
+          "destination": "models/loras/lenovo_qwen21.safetensors",
+          "size_bytes": 79743896,
+          "sha256": "7f1e95c3ec1e9c7cea197f7b6f80f601af8e6b479f6ead78ab16df542f447c0e",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "loras / bfs_head_v1.1_alternative_qwen_2.1.safetensors",
+          "url": "https://huggingface.co/Alissonerdx/BFS-Best-Face-Swap/resolve/2209ae537ac5e883d6ec7db5b7bd6dccf1a0eba7/bfs_head_v1.1_alternative_qwen_2.1.safetensors",
+          "destination": "models/loras/bfs_head_v1.1_alternative_qwen_2.1.safetensors",
+          "size_bytes": 318821008,
+          "sha256": "c5332bbc2f826856e7a09bce9740e97d39514b849368212e1f2c3c2c2d81c217",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "model_patches / Qwen-Image-2.1-Fun-Controlnet-Union.safetensors",
+          "url": "https://huggingface.co/alibaba-pai/Qwen-Image-2.1-Fun-Controlnet-Union/resolve/8a4702014d4dabb5f896fcba917e2ee0a961465f/Qwen-Image-2.1-Fun-Controlnet-Union.safetensors",
+          "destination": "models/model_patches/Qwen-Image-2.1-Fun-Controlnet-Union.safetensors",
+          "size_bytes": 7550979904,
+          "sha256": "65d6b66d734da9e7ff5ef04e7db3a133553a52a3f29a7fcb3e9cce8fa21dcfcd",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "sam2 / sam2_hiera_small.safetensors",
+          "url": "https://huggingface.co/Kijai/sam2-safetensors/resolve/f885607d88bb3f9145efa49c3e3c50a9e5bf13eb/sam2_hiera_small.safetensors",
+          "destination": "models/sam2/sam2_hiera_small.safetensors",
+          "size_bytes": 184237544,
+          "sha256": "4a468e02aad34f8deeea82e2ec1612fab1e2765248be2e00a26afa537e2975b4",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "SEEDVR2 / seedvr2_ema_3b_fp16.safetensors",
+          "url": "https://huggingface.co/numz/SeedVR2_comfyUI/resolve/09ced71023636e9bc8cdf9cdecfb2625d1e691e8/seedvr2_ema_3b_fp16.safetensors",
+          "destination": "models/SEEDVR2/seedvr2_ema_3b_fp16.safetensors",
+          "size_bytes": 6783018808,
+          "sha256": "2fd0e03a3dad24e07086750360727ca437de4ecd456f769856e960ae93e2b304",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "SEEDVR2 / ema_vae_fp16.safetensors",
+          "url": "https://huggingface.co/numz/SeedVR2_comfyUI/resolve/09ced71023636e9bc8cdf9cdecfb2625d1e691e8/ema_vae_fp16.safetensors",
+          "destination": "models/SEEDVR2/ema_vae_fp16.safetensors",
+          "size_bytes": 501324814,
+          "sha256": "20678548f420d98d26f11442d3528f8b8c94e57ee046ef93dbb7633da8612ca1",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Florence-2-base / model.safetensors",
+          "url": "https://huggingface.co/microsoft/Florence-2-base/resolve/5ca5edf5bd017b9919c05d08aebef5e4c7ac3bac/model.safetensors",
+          "destination": "models/LLM/Florence-2-base/model.safetensors",
+          "size_bytes": 463221266,
+          "sha256": "03075d2d2d2bbd3e180b9ba0afae4aa8563226e2d32911656966e05b2f2ee060",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Florence-2-base / config.json",
+          "url": "https://huggingface.co/microsoft/Florence-2-base/resolve/5ca5edf5bd017b9919c05d08aebef5e4c7ac3bac/config.json",
+          "destination": "models/LLM/Florence-2-base/config.json",
+          "size_bytes": 2430,
+          "sha256": "c666d0fe0172d46e115e8fba6cd93cd83714575b33a73005cab8d24ce2a3aa8f",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Florence-2-base / preprocessor_config.json",
+          "url": "https://huggingface.co/microsoft/Florence-2-base/resolve/5ca5edf5bd017b9919c05d08aebef5e4c7ac3bac/preprocessor_config.json",
+          "destination": "models/LLM/Florence-2-base/preprocessor_config.json",
+          "size_bytes": 806,
+          "sha256": "2f5921bbc53c7cc04251e1027b45b1cec726276be6db23d1bb40641bfbe2cf29",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Florence-2-base / tokenizer.json",
+          "url": "https://huggingface.co/microsoft/Florence-2-base/resolve/5ca5edf5bd017b9919c05d08aebef5e4c7ac3bac/tokenizer.json",
+          "destination": "models/LLM/Florence-2-base/tokenizer.json",
+          "size_bytes": 1355863,
+          "sha256": "847bbeab6174d66a88898f729d52fa8d355fafe1bea101cf960dd404581df70e",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Florence-2-base / tokenizer_config.json",
+          "url": "https://huggingface.co/microsoft/Florence-2-base/resolve/5ca5edf5bd017b9919c05d08aebef5e4c7ac3bac/tokenizer_config.json",
+          "destination": "models/LLM/Florence-2-base/tokenizer_config.json",
+          "size_bytes": 34,
+          "sha256": "79ffcf43af8ebda99d165f61d243180da2e2639952e41e71e11611c18770489c",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Florence-2-base / vocab.json",
+          "url": "https://huggingface.co/microsoft/Florence-2-base/resolve/5ca5edf5bd017b9919c05d08aebef5e4c7ac3bac/vocab.json",
+          "destination": "models/LLM/Florence-2-base/vocab.json",
+          "size_bytes": 1099884,
+          "sha256": "394fdc63c71aabe0a9b97117f5d62fb5fcc4d59b2b3ea929a3929e6a53217b3c",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "depth-anything-large-hf / model.safetensors",
+          "url": "https://huggingface.co/LiheYoung/depth-anything-large-hf/resolve/27ccb0920352c0c37b3a96441873c8d37bd52fb6/model.safetensors",
+          "destination": "models/annotators/depth-anything-large-hf/model.safetensors",
+          "size_bytes": 1341322868,
+          "sha256": "bc27360a3e6906e5ddd8f618e2dcde11362327361918b8f76793e42e25de31b3",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "depth-anything-large-hf / config.json",
+          "url": "https://huggingface.co/LiheYoung/depth-anything-large-hf/resolve/27ccb0920352c0c37b3a96441873c8d37bd52fb6/config.json",
+          "destination": "models/annotators/depth-anything-large-hf/config.json",
+          "size_bytes": 1433,
+          "sha256": "0e06ef1e45848a429717772dae0a27877781ae413dc03682138f145fd1c46364",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "depth-anything-large-hf / preprocessor_config.json",
+          "url": "https://huggingface.co/LiheYoung/depth-anything-large-hf/resolve/27ccb0920352c0c37b3a96441873c8d37bd52fb6/preprocessor_config.json",
+          "destination": "models/annotators/depth-anything-large-hf/preprocessor_config.json",
+          "size_bytes": 437,
+          "sha256": "533b16a60445d7cab5086d39b45f92be45624b977972c62d5984d93e98366063",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
         }
       ],
       "custom_nodes": [
@@ -1576,7 +1836,8 @@
           "ref": "bc48c6aaeca87bedbc14245d89f9bc6be37a630e",
           "install_requirements": true,
           "required_node_types": [
-            "Power Lora Loader (rgthree)"
+            "Power Lora Loader (rgthree)",
+            "Image Comparer (rgthree)"
           ]
         },
         {
@@ -1677,6 +1938,85 @@
             "BondResolution",
             "BondBigNumber"
           ]
+        },
+        {
+          "name": "ComfyUI-Florence2",
+          "repo": "https://github.com/kijai/ComfyUI-Florence2.git",
+          "ref": "9ece3de914214c5f581d725167bc9d0eeb0d1120",
+          "install_requirements": true,
+          "required_node_types": [
+            "DownloadAndLoadFlorence2Model",
+            "Florence2Run"
+          ]
+        },
+        {
+          "name": "ComfyUI-segment-anything-2",
+          "repo": "https://github.com/kijai/ComfyUI-segment-anything-2.git",
+          "ref": "0c35fff5f382803e2310103357b5e985f5437f32",
+          "install_requirements": true,
+          "required_node_types": [
+            "DownloadAndLoadSAM2Model",
+            "Sam2Segmentation",
+            "Florence2toCoordinates"
+          ]
+        },
+        {
+          "name": "ComfyUI-BatchFolderTools",
+          "repo": "https://github.com/hodgemann/ComfyUI-BatchFolderTools.git",
+          "ref": "8621f610f0d0a1bf322b0cfa2f70bc42b2692229",
+          "install_requirements": true,
+          "required_node_types": [
+            "FolderImageLoader_BFT"
+          ]
+        },
+        {
+          "name": "ComfyUI-SeedVR2_VideoUpscaler",
+          "repo": "https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler.git",
+          "ref": "4490bd1f482e026674543386bb2a4d176da245b9",
+          "install_requirements": true,
+          "required_node_types": [
+            "SeedVR2LoadDiTModel",
+            "SeedVR2LoadVAEModel",
+            "SeedVR2VideoUpscaler"
+          ]
+        },
+        {
+          "name": "ComfyUI_LayerStyle",
+          "repo": "https://github.com/chflame163/ComfyUI_LayerStyle.git",
+          "ref": "02acdc50affb84cd24f341d1fc2d3a9134b2ad3d",
+          "install_requirements": true,
+          "required_node_types": [
+            "LayerMask: MaskGrow",
+            "LayerUtility: ImageScaleByAspectRatio V2"
+          ]
+        },
+        {
+          "name": "ComfyUI-Easy-Use",
+          "repo": "https://github.com/yolain/ComfyUI-Easy-Use.git",
+          "ref": "271685698b0935c5b0ecca86a58c3817931cd205",
+          "install_requirements": true,
+          "required_node_types": [
+            "easy int"
+          ]
+        },
+        {
+          "name": "comfyui_controlnet_aux",
+          "repo": "https://github.com/Fannovel16/comfyui_controlnet_aux.git",
+          "ref": "59b1fc411ede8623b2997855b8018f0b3b6cf49f",
+          "install_requirements": true,
+          "required_node_types": [
+            "AIO_Preprocessor",
+            "DepthAnythingPreprocessor"
+          ]
+        },
+        {
+          "name": "ComfyUI-Custom-Scripts",
+          "repo": "https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git",
+          "ref": "609f3afaa74b2f88ef9ce8d939626065e3247469",
+          "install_requirements": true,
+          "required_node_types": [
+            "ShowText|pysssss"
+          ]
         }
       ],
       "system_packages": [
@@ -1685,22 +2025,43 @@
       ],
       "prepare_krast_placeholder": true,
       "required_core_node_types": [
-        "UNETLoader",
         "CLIPLoader",
-        "VAELoader",
-        "SaveImage",
         "CLIPTextEncode",
-        "ModelSamplingAuraFlow",
-        "VAEDecode",
-        "ImageAddNoise",
-        "EmptySD3LatentImage",
-        "ImageScaleBy",
-        "VAEEncode",
-        "MaskToImage",
-        "ImageToMask",
         "ConditioningConcat",
+        "EmptySD3LatentImage",
+        "GetImageSize",
+        "ImageAddNoise",
         "ImageBlend",
-        "LoadImage"
+        "ImageScale",
+        "ImageScaleBy",
+        "ImageToMask",
+        "ImageUpscaleWithModel",
+        "KSampler",
+        "LatentUpscaleBy",
+        "LoadImage",
+        "LoraLoaderModelOnly",
+        "MaskPreview",
+        "MaskToImage",
+        "ModelPatchLoader",
+        "ModelSamplingAuraFlow",
+        "PreviewAny",
+        "PreviewImage",
+        "PrimitiveFloat",
+        "PrimitiveStringMultiline",
+        "QwenImageDiffsynthControlnet",
+        "RegexExtract",
+        "SaveImage",
+        "SetLatentNoiseMask",
+        "SplitImageWithAlpha",
+        "StringConcatenate",
+        "StringFormat",
+        "TextEncodeQwenImage21",
+        "TextGenerate",
+        "UNETLoader",
+        "UpscaleModelLoader",
+        "VAEDecode",
+        "VAEEncode",
+        "VAELoader"
       ],
       "required_core_input_options": {
         "CLIPLoader": {
@@ -1713,7 +2074,28 @@
             "studio_placeholder.png"
           ]
         }
-      }
+      },
+      "comfyui_ref": "989d93d0d968e704c589ce0146bb18c77f6b50cc",
+      "warmup_profile": "krast-faceswap",
+      "workflow_source": {
+        "repo": "simbo1005/custom_wf",
+        "path": "FaceSwap_WIPtestedSeedVR.json",
+        "git_blob": "f128e92558a59e6ae78424da5ed9b1f8d265dbb6",
+        "sha256": "69e95a920f5e1fedd3cd492139b1f977fe00f1faa8e868a0f6f1203aa3e218cb"
+      },
+      "hf_cache_snapshots": [
+        {
+          "repo": "LiheYoung/depth-anything-large-hf",
+          "revision": "27ccb0920352c0c37b3a96441873c8d37bd52fb6",
+          "directory": "models/annotators/depth-anything-large-hf",
+          "files": [
+            "config.json",
+            "preprocessor_config.json",
+            "model.safetensors"
+          ]
+        }
+      ],
+      "require_sage_attention": true
     }
   ]
 }

@@ -165,6 +165,13 @@ def test_catalog_contains_installers_but_no_product_workflows() -> None:
                     "models/segformer_b2_clothes/preprocessor_config.json",
                     "models/vitmatte/config.json",
                     "models/vitmatte/preprocessor_config.json",
+                    "models/llm/florence-2-base/config.json",
+                    "models/llm/florence-2-base/preprocessor_config.json",
+                    "models/llm/florence-2-base/tokenizer.json",
+                    "models/llm/florence-2-base/tokenizer_config.json",
+                    "models/llm/florence-2-base/vocab.json",
+                    "models/annotators/depth-anything-large-hf/config.json",
+                    "models/annotators/depth-anything-large-hf/preprocessor_config.json",
                 }
             assert "workflow" not in destination
             assert file_spec["size_bytes"] > 0
@@ -1628,21 +1635,11 @@ def test_comfyui_update_uses_official_master_and_runtime_python(
             "HEAD",
         ),
     ]
-    assert commands[6:] == [
-        (
-            str(comfy_python),
-            "-m",
-            "pip",
-            "install",
-            "--disable-pip-version-check",
-            "--timeout",
-            "30",
-            "--retries",
-            "3",
-            "-r",
-            str(comfy_dir / "requirements.txt"),
-        ),
-    ]
+    assert commands[6][1:] == ("-m", "pip", "freeze", "--disable-pip-version-check")
+    install = commands[7]
+    assert install[0] == str(comfy_python)
+    assert "--constraint" in install and "--no-build-isolation" in install
+    assert install[-2:] == ("-r", str(comfy_dir / "requirements.txt"))
 
 
 def test_model_link_places_a_custom_node_checkpoint_without_a_second_download(

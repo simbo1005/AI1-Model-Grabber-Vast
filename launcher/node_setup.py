@@ -55,7 +55,7 @@ SYSTEM_TOOLS = {
     "ffmpeg": ("ffmpeg", "-version"),
 }
 _PROTECTED_PACKAGE = re.compile(
-    r"^(?:torch|torchvision|torchaudio|torchcodec|numpy)==[^\s]+$", re.IGNORECASE
+    r"^(?:torch|torchvision|torchaudio|torchcodec|numpy|sageattention|triton)==[^\s]+$", re.IGNORECASE
 )
 
 
@@ -100,6 +100,16 @@ async def install_requirements(
         raise RuntimeError("Could not inspect ComfyUI's Python packages: " + frozen[-1000:])
     protected = [line.strip() for line in frozen.splitlines()
                  if _PROTECTED_PACKAGE.fullmatch(line.strip())]
+    # A baked wheel is represented as a PEP 610 direct URL by pip freeze.
+    # Get its installed version rather than dropping the native ABI constraint.
+    if any(re.match(r"^(sageattention|triton)\s*@", line, re.I) for line in frozen.splitlines()):
+        code, versions = await run(python, "-c",
+            "import importlib.metadata as m; "
+            "[print(n+'=='+m.version(n)) for n in ('sageattention','triton') "
+            "if m.packages_distributions().get(n)]")
+        if code:
+            raise RuntimeError("Could not protect the installed attention ABI: "+versions[-1000:])
+        protected.extend(line for line in versions.splitlines() if _PROTECTED_PACKAGE.fullmatch(line))
     with tempfile.TemporaryDirectory(prefix="dsnn-node-requirements-") as directory:
         constraints = Path(directory) / "constraints.txt"
         constraints.write_text("\n".join(protected) + "\n", encoding="utf-8")

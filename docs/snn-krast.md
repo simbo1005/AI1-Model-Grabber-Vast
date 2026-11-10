@@ -1,77 +1,93 @@
-# SNN KRAST resource installer
+# SNN KRAST and FaceSwap / SeedVR2
 
-Select **SNN KRAST** in the launcher and keep the default resource checkboxes
-selected to install the original full-precision workflow stack. The tile is
-separate from Krea 2 Extended and does not add KRAST or its LoRAs to WAN/MiniMax.
+The SNN KRAST tile installs the original image-generation stack and the resources
+referenced by `FaceSwap_WIPtestedSeedVR.json` in your private `custom_wf` repository.
+The uploaded workflow is never edited or redistributed by this installer.
 
-The 15 checked-by-default resources total **48,427,687,495 bytes (48.4 GB)**:
+Keep the default checkboxes selected: **41 resources, approximately 101.3 GB**.
+These include full BF16 KRAST, Krea2 Engineer BF16, Qwen3-VL 8B BF16, the exact
+RedQW FP8 model, Qwen 2.1 VAE and Fun ControlNet Union, the enabled workflow LoRAs,
+Florence-2-base, SAM2 Small, Depth Anything Large, SeedVR2 3B FP16 and its FP16 VAE.
+The original image-generation/vision resources remain available as well.
+No model is replaced by a smaller quantization.
 
-- KRAST Raw BF16 v3 from the public, ungated dataset `simbo926/KrastRaw`.
-- Original Qwen3-VL 4B BF16 text encoder and Wan 2.1 VAE.
-- Four original LoRAs: turbo distill r256, TextFusion, Lenovo UltraReal and
-  RealisticSnapshot Krea2 V2. The latter uses a SHA-256-identical HF mirror.
-- Qwen3-VL 8B Q8_0 vision model and its original F16 projector.
-- Segformer and ViTMatte models, each with its config and preprocessor config.
+## Downloads and credentials
 
-All model URLs are pinned Hugging Face revisions. They use the existing
-`hf download` path, `HF_XET_HIGH_PERFORMANCE=1` and the launcher's existing
-range-request settings. The new tile does not change the transfer method or
-speed settings of existing pipelines. Actual throughput still depends on the
-host's bandwidth, disk and route to HF.
+39 resources use the existing official `hf download` path, with Xet high
+performance and the existing range settings. All HF URLs pin a repository commit
+and all resources have size/SHA-256 checks. Depth's Transformers cache is seeded
+from the verified CLI downloads so its first execution does not download again.
+Florence's tokenizer/config files and SAM2 weights are installed ahead of time.
 
-The main model download is equivalent to:
+Set `HF_TOKEN` in your template for the private `simbo926/rmdl` LoRA. Set
+`CIVITAI_TOKEN` for the existing RedQW model and companion Civitai LoRA. An exact
+HF mirror of those two Civitai files has not been verified; the available HF
+RedQW candidate has a different hash and precision and is not substituted.
+Credentials are never written into source or image layers.
 
-```bash
-hf download simbo926/KrastRaw Krast-Raw-bf16.safetensors \
-  --repo-type dataset --revision a23a479cd6a0c22359b18a1cc6df5f1636617eb1 \
-  --local-dir /tmp/krast-download
-```
+## Nodes and versions
 
-The launcher places it at
-`models/diffusion_models/krastBf16_v3_bf16.safetensors`, preserving the filename
-expected by the unchanged workflow. Its SHA-256 is
-`3b2c89871d08bb13e8bf166edb9fd2e23c1349b9b48a0e1cad095f3f03a03335`.
-No quantization or model replacement is performed. `HF_TOKEN` from your
-template is used when present; these public resources do not require a token.
-No Civitai token is needed for this tile.
+The installer pins ComfyUI to `989d93d0d968e704c589ce0146bb18c77f6b50cc` for this
+tile and verifies all **62 distinct node types** referenced by the uploaded graph.
+It installs 15 pinned node packages including BatchFolderTools, Florence2, SAM2,
+LayerStyle, Easy Use, controlnet_aux, Custom Scripts and SeedVR2, together with
+rgthree, the original sampler, LC nodes and Bond Node Suite. ExifTool is provided
+by `libimage-exiftool-perl`.
 
-## Custom nodes and readiness
+Node/core dependency installs constrain Torch, torchvision, torchaudio, torchcodec,
+numpy, SageAttention and Triton to protect the native CUDA ABI. The original
+sampler and caption selector are fetched from the reviewed, checksum-pinned
+8.8 KB public image layer. LC Vision's reviewed installer uses its prebuilt wheel
+without replacing Torch or compiling llama.cpp on your rented GPU.
 
-The installer adds pinned rgthree, LC123, LC MaskMaker and LC Vision packages,
-the original SamplerV3 and lazy prompt selector, plus Bond Node Suite and
-ExifTool/FFmpeg. The two bundled node packages are fetched from a checksum-pinned
-8.8 KB public image layer; this never pulls a complete Docker image, and their
-source is not republished in this repository. Existing modified local copies
-are preserved and reported instead of overwritten.
+## SageAttention 2 before startup
 
-LC123 supplies the original `LC_Crushed_Blacks.cube` LUT. LC Vision runs its
-reviewed installer using ComfyUI's Python to select and verify a prebuilt,
-vision-capable llama.cpp CUDA wheel. It uses `--no-deps`, never builds from source,
-and does not replace Torch or numpy. Small supporting dependencies are installed
-under constraints protecting the existing CUDA packages.
+Use the new **Vast `1.4-test` / RunPod `2.4-test` image**, not just an auto-updated
+launcher inside an older image. Docker builds SageAttention 2.2.0 from immutable
+upstream source for SM 80, 86, 89, 90 and 120 (Ampere, Ada, Hopper and Blackwell).
+The source archive is SHA-256 pinned; Hopper kernels use the reviewed
+Hopper-only compilation target fix also used by Comfy-Org's wheel builds.
 
-After restart the launcher checks every workflow-required custom-node type,
-the 16 required core node types, Krea 2 encoder support and the LUT. The graph's
-neutral `studio_placeholder.png` input is created through ComfyUI's upload API
-only if it is absent, so customized input directories work and existing images
-are preserved. Select your own reference before using image-caption mode.
+Before ComfyUI starts, its own Python checks the wheel's Python/Torch/CUDA/C++ ABI,
+imports all CUDA extensions, and executes small FP16/BF16 GPU kernel checks against
+PyTorch SDPA. A missing wheel in an existing venv is installed from the image,
+with `--no-index --no-deps`; there is no runtime source compilation or download.
+ComfyUI starts with `--use-sage-attention`. The workflow's explicit SeedVR2 SDPA
+selection is preserved.
 
-## Open the workflow
+## Automatic warmup
 
-This tile installs resources; it does not redistribute product workflow files.
-Download the editable graph from your private repository:
+After downloads, node installation, restart and registration checks, setup runs
+four small scratch jobs: Florence/SAM2/depth, SeedVR2, Qwen 2.1/ControlNet and KRAST.
+They use a neutral placeholder image, 512-pixel test inputs, one sampling step,
+fixed test seeds and the selected workflow LoRAs. Their outputs go only to
+ComfyUI's temporary preview directory. Your saved graph, prompts, photos,
+resolution, model precision, sampler settings and output directory are unchanged.
 
-[custom_wf / SNN-KRAST](https://github.com/simbo1005/custom_wf/tree/main/SNN-KRAST)
+Warmup waits for real execution completion. It skips a busy queue, reports failures,
+and cancellation removes/interrupts only its own prompt ID. It never clears the
+user's queue or history. `warmup_status` is available in `/api/status`; set
+`LAUNCHER_WARMUP=0` to disable this optional preparation. Restarting ComfyUI loses
+resident models, so installation must finish its warmup again after a restart.
 
-Load `SNN-KRAST-Editable-ComfyUI.json` into ComfyUI, enter your description in
-**PROMPT SOURCE**, and queue it. All node links and sampling values in that
-file remain unchanged. No replacement sampler is used.
+Warmup shifts some initialization work into setup. A 32 GB GPU cannot retain all
+of these models at once; later model offloading/reloading and shape-specific
+compilation can still occur. CPU CI validates builds and controls; actual GPU
+execution is checked on deployment and is not implied by a successful image build.
 
-For an existing container, restart the launcher/container to fetch the latest
-`main` source through its configured GitHub updater. A template pinned to another
-source ref will need the corresponding ref selected. These changes do not
-require baking weights or credentials into an image.
+## Your workflow inputs
 
-Validation covers resource hashes, dataset-to-model placement, the HF CLI route,
-safe atomic bundle installation, the vision installer and readiness checks.
-GPU generation still requires testing on a real instance.
+Get the original graph from your private
+[custom_wf repository](https://github.com/simbo1005/custom_wf/blob/main/FaceSwap_WIPtestedSeedVR.json).
+Supply its two reference photos and the `input/tasca` folder yourself; the
+installer never fabricates replacements for those private inputs.
+
+Disabled LoRA slots are not required for execution. Exact sources for
+`MysticXXX_KREA2_v1.safetensors`, `NaturallySaggingBreasts.safetensors`,
+`HORNY AMATEUR LORA.safetensors` and `Krea2_Realistic_Skin_Texture.safetensors`
+have not been resolved and are not substituted or enabled.
+
+The source graph has `SeedVR2LoadDiTModel` node 4559's `cache_model` set to the
+string `"sdpa"`; its pinned node schema expects a boolean. At your request the
+original is kept unchanged. Resource installation does not fix this source-graph
+validation issue. The separate scratch warmup uses `false` for its own job.
