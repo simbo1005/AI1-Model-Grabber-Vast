@@ -45,6 +45,9 @@ without replacing Torch or compiling llama.cpp on your rented GPU.
 Use the new **Vast `1.4-test` / RunPod `2.4-test` image**, not just an auto-updated
 launcher inside an older image. Docker builds SageAttention 2.2.0 from immutable
 upstream source for SM 80, 86, 89, 90 and 120 (Ampere, Ada, Hopper and Blackwell).
+The build checks CUDA development headers before compiling, reuses Torch’s
+library headers, and extracts only missing headers without replacing runtime
+CUDA libraries. The compiled wheel is cached before the separate import checks.
 The source archive is SHA-256 pinned; Hopper kernels use the reviewed
 Hopper-only compilation target fix also used by Comfy-Org's wheel builds.
 

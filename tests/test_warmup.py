@@ -127,7 +127,7 @@ def test_sage_source_patch_is_fail_closed_and_hopper_only(tmp_path):
     spec=importlib.util.spec_from_file_location('sage_build',path)
     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
     with pytest.raises(RuntimeError,match='source changed'):module.patch_source('changed upstream')
-    source='extra_compile_args={"cxx": CXX_FLAGS, "nvcc": NVCC_FLAGS},\n                extra_link_args=[\'-lcuda\'],'
+    source='extra_compile_args={"cxx": CXX_FLAGS, "nvcc": NVCC_FLAGS},\n                extra_link_args=[\'-lcuda\'],\nsetup(\n)'
     patched=module.patch_source(source)
     assert 'arch=compute_90a,code=sm_90a' in patched
     assert set(module.ARCHES.split(';')) >= {'8.0','8.6','8.9','9.0','12.0'}
@@ -255,3 +255,18 @@ def test_warmup_image_is_new_neutral_temporary_data_on_every_run():
     asyncio.run(run())
     assert len(set(names))==2
     assert all('studio_placeholder' not in n for n in names)
+
+
+def test_sage_build_finds_torch_library_headers_and_bounds_parallelism(tmp_path):
+    path=Path(__file__).parents[1]/'docker/attention/build.py'
+    spec=importlib.util.spec_from_file_location('sage_header_build',path)
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    assert module.parallel_jobs(7*1024**3)==1
+    assert module.parallel_jobs(16*1024**3)==2
+    first=tmp_path/'sdk';second=tmp_path/'torch-nvidia'
+    first.mkdir();second.mkdir()
+    (first/'cublas_v2.h').touch();(first/'cublasLt.h').touch()
+    (second/'cusparse.h').touch()
+    assert module.missing_header_packages([first,second])=={'libcusolver-dev'}
+    (second/'cusolverDn.h').touch()
+    assert not module.missing_header_packages([first,second])

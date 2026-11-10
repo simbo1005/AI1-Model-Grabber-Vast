@@ -90,6 +90,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Compile and cache native SageAttention wheel
+        if: ${{ inputs.runtime_base == '' }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          target: sage-native
+          platforms: linux/amd64
+          push: false
+          outputs: type=cacheonly
+          cache-from: |
+            type=registry,ref=${{ env.DOCKERHUB_IMAGE }}:sage2-buildcache
+            type=gha,scope=sage-native
+          cache-to: |
+            type=registry,ref=${{ env.DOCKERHUB_IMAGE }}:sage2-buildcache,mode=max,ignore-error=true
+            type=gha,scope=sage-native,mode=min,ignore-error=true
+
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -106,5 +123,8 @@ jobs:
             IMAGE_VERSION=${{ inputs.tag }}
             SOURCE_REVISION=${{ github.sha }}
             BASE_IMAGE=${{ inputs.runtime_base }}
-          cache-from: ${{ inputs.runtime_base == '' && 'type=gha' || '' }}
-          cache-to: ${{ inputs.runtime_base == '' && 'type=gha,mode=min' || '' }}
+          cache-from: |
+            ${{ inputs.runtime_base == '' && format('type=registry,ref={0}:sage2-buildcache', env.DOCKERHUB_IMAGE) || '' }}
+            ${{ inputs.runtime_base == '' && 'type=gha,scope=sage-native' || '' }}
+            ${{ inputs.runtime_base == '' && 'type=gha' || '' }}
+          cache-to: ${{ inputs.runtime_base == '' && 'type=gha,mode=min,ignore-error=true' || '' }}

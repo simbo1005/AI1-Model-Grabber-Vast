@@ -1,14 +1,8 @@
 # syntax=docker/dockerfile:1.7
 
 ARG VAST_COMFY_IMAGE=vastai/comfy:v0.34.0-cuda-12.9-py312
-FROM ${VAST_COMFY_IMAGE}
+FROM ${VAST_COMFY_IMAGE} AS sage-native
 
-ARG IMAGE_VERSION=dev
-
-LABEL org.opencontainers.image.title="dsnn ComfyUI Workflow Launcher for Vast.ai" \
-      org.opencontainers.image.description="Vast.ai ComfyUI with the dsnn Model Grabber and native Instance Portal integration" \
-      org.opencontainers.image.source="https://github.com/simbo1005/AI1-Model-Grabber-Vast" \
-      org.opencontainers.image.version="${IMAGE_VERSION}"
 
 USER root
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -79,8 +73,12 @@ RUN set -eu; \
 # Startup uses this local wheel; no compiler or internet install on a rented GPU.
 COPY docker/attention/build.py /opt/dsnn-attention/build.py
 RUN /venv/main/bin/python /opt/dsnn-attention/build.py
-COPY docker/attention/launch.py docker/attention/patch_startup.py /opt/dsnn-attention/
-RUN /venv/main/bin/python /opt/dsnn-attention/patch_startup.py vast
+# Commit compilation separately from import/startup checks.
+FROM sage-native AS runtime
+
+COPY docker/attention/check.py docker/attention/launch.py docker/attention/patch_startup.py /opt/dsnn-attention/
+RUN /venv/main/bin/python /opt/dsnn-attention/check.py \
+    && /venv/main/bin/python /opt/dsnn-attention/patch_startup.py vast
 
 COPY launcher/ /opt/dsnn/launcher/
 COPY catalog/ /opt/dsnn/catalog/
@@ -89,6 +87,16 @@ COPY docker/vast/dsnn-launcher.conf /etc/supervisor/conf.d/dsnn-launcher.conf
 
 RUN chmod +x /opt/supervisor-scripts/dsnn-launcher.sh \
     && install -d -m 0700 /opt/dsnn/secrets
+
+# Version metadata follows compilation so a source/tag change can reuse native layers.
+ARG IMAGE_VERSION=dev
+ARG SOURCE_REVISION=unknown
+
+LABEL org.opencontainers.image.title="dsnn ComfyUI Workflow Launcher for Vast.ai" \
+      org.opencontainers.image.description="Vast.ai ComfyUI with the dsnn Model Grabber and native Instance Portal integration" \
+      org.opencontainers.image.source="https://github.com/simbo1005/AI1-Model-Grabber-Vast" \
+      org.opencontainers.image.version="${IMAGE_VERSION}" \
+      org.opencontainers.image.revision="${SOURCE_REVISION}"
 
 EXPOSE 1111 3000 8080 8188 8288 8384
 
