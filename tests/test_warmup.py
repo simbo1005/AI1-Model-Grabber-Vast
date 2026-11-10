@@ -190,3 +190,36 @@ def test_launch_enables_sage_and_blocks_unsafe_graph_replay(tmp_path, monkeypatc
     assert '--use-pytorch-cross-attention' not in seen[0]
     assert ('--disable-cuda-graphs' in seen[0]) is supports_graph_switch
     assert seen[0][-2:]==['18188','--disable-cuda-graphs'] if supports_graph_switch else seen[0][-2:]==['--port','18188']
+
+
+def test_sage_guard_runs_before_compiler_and_preserves_user_edits(tmp_path, monkeypatch):
+    import sys
+    from types import ModuleType, SimpleNamespace
+    from launcher.attention_setup import install_guard
+    install_guard(tmp_path)
+    source=(tmp_path/'DSNN_Attention_Guard/prestartup_script.py').read_text()
+    cli=ModuleType('comfy.cli_args');cli.args=SimpleNamespace(use_sage_attention=True, disable_cuda_graphs=False)
+    monkeypatch.setitem(sys.modules,'comfy',ModuleType('comfy'))
+    monkeypatch.setitem(sys.modules,'comfy.cli_args',cli)
+    exec(compile(source,'guard.py','exec'),{})
+    assert cli.args.disable_cuda_graphs is True
+    install_guard(tmp_path)
+    path=tmp_path/'DSNN_Attention_Guard/__init__.py';path.write_text('my edited guard')
+    with pytest.raises(RuntimeError,match='preserving'):install_guard(tmp_path)
+    assert path.read_text()=='my edited guard'
+
+
+@pytest.mark.parametrize('state,valid', [
+    ({'sage_enabled':True,'sage_version':'2.2.0','cuda_graphs_disabled':True}, True),
+    ({'sage_enabled':False,'sage_version':'2.2.0','cuda_graphs_disabled':True}, False),
+    ({'sage_enabled':True,'sage_version':'1.0.6','cuda_graphs_disabled':True}, False),
+    ({'sage_enabled':True,'sage_version':'2.2.0','cuda_graphs_disabled':False}, False),
+])
+def test_running_comfy_attention_is_verified_before_warmup(state, valid):
+    from launcher.attention_setup import verify_attention
+    async def run():
+        async with httpx.AsyncClient(base_url='http://comfy',transport=httpx.MockTransport(lambda r:httpx.Response(200,json=state))) as client:
+            await verify_attention('',client=client)
+    if valid:asyncio.run(run())
+    else:
+        with pytest.raises(RuntimeError,match='not running SageAttention'):asyncio.run(run())

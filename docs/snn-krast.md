@@ -55,6 +55,10 @@ with `--no-index --no-deps`; there is no runtime source compilation or download.
 ComfyUI starts with `--use-sage-attention`. On cores that support it,
 `--disable-cuda-graphs` prevents the stale-output replay path reported in
 [SageAttention issue 393](https://github.com/thu-ml/SageAttention/issues/393).
+A small DSNN prestartup guard reapplies this setting before compiler
+initialization on Manager reboots too. Before warmup, setup checks
+`/dsnn/attention` to confirm that the running ComfyUI really has SageAttention
+2.2.0 enabled and CUDA graphs disabled. A missing/inactive guard fails readiness.
 The workflow's explicit SeedVR2 SDPA
 selection is preserved.
 

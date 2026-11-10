@@ -25,6 +25,7 @@ from pydantic import BaseModel
 from launcher.bundled_nodes import prepare_bundled_node
 from launcher.krast_setup import ensure_placeholder
 from launcher.warmup import run_warmup
+from launcher.attention_setup import install_guard, verify_attention
 from launcher.impact_compat import repair_impact_frontend
 from launcher.node_setup import (
     ensure_system_tools,
@@ -1433,6 +1434,8 @@ class JobController:
                                    "required_node_types": workflow["required_core_node_types"],
                                    "required_input_options": workflow.get("required_core_input_options", {})})
                 await self._verify_custom_nodes(checks)
+                if workflow.get("require_sage_attention"):
+                    await verify_attention(COMFYUI_LOCAL_URL)
                 if workflow.get("warmup_profile"):
                     if os.getenv("LAUNCHER_WARMUP", "1").lower() in {"0", "false", "off"}:
                         self.state.warmup_status = "disabled"
@@ -1639,6 +1642,8 @@ class JobController:
         if workflow.get("require_sage_attention") and not Path("/opt/dsnn-attention/build.json").is_file():
             raise RuntimeError("This SNN KRAST update requires the new SageAttention image (Vast 1.4-test / RunPod 2.4-test). Updating launcher files alone cannot add compiled CUDA kernels.")
         await self._wait_for_comfyui()
+        if workflow.get("require_sage_attention"):
+            install_guard(CUSTOM_NODES_DIR)
         files = workflow.get("files", [])
         nodes = workflow.get("custom_nodes", [])
         model_links = workflow.get("model_links", [])
