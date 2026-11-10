@@ -1841,6 +1841,17 @@
           ]
         },
         {
+          "name": "ComfyUI-KJNodes",
+          "repo": "https://github.com/kijai/ComfyUI-KJNodes.git",
+          "ref": "8692bc8ef8beaaeee80fd52ba80477dc9e61547b",
+          "install_requirements": true,
+          "required_node_types": [
+            "ImageResizeKJv2",
+            "GetImageSizeAndCount",
+            "ImageBatchMulti"
+          ]
+        },
+        {
           "name": "ComfyUI-SamplerV3",
           "source": "image_bundle",
           "source_image": "velmcomfy/studio-legacy-4dd5158486@sha256:e33fdbabe0430f217b680d6b947f41af1eb915c5795b89bf533e0a70f99f24ef",

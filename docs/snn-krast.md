@@ -29,10 +29,14 @@ Credentials are never written into source or image layers.
 
 The installer pins ComfyUI to `989d93d0d968e704c589ce0146bb18c77f6b50cc` for this
 tile and verifies all **62 distinct node types** referenced by the uploaded graph.
-It installs 15 pinned node packages including BatchFolderTools, Florence2, SAM2,
+It installs 16 pinned node packages including KJNodes, BatchFolderTools, Florence2, SAM2,
 LayerStyle, Easy Use, controlnet_aux, Custom Scripts and SeedVR2, together with
 rgthree, the original sampler, LC nodes and Bond Node Suite. ExifTool is provided
 by `libimage-exiftool-perl`.
+
+KJNodes is installed with its frontend extensions, including Set/Get nodes. Setup
+also verifies `ImageResizeKJv2`, `GetImageSizeAndCount` and `ImageBatchMulti` in the
+running server. Frontend-only Set/Get nodes are not part of the API export.
 
 Node/core dependency installs constrain Torch, torchvision, torchaudio, torchcodec,
 numpy, SageAttention and Triton to protect the native CUDA ABI. The original
