@@ -106,5 +106,5 @@ jobs:
             IMAGE_VERSION=${{ inputs.tag }}
             SOURCE_REVISION=${{ github.sha }}
             BASE_IMAGE=${{ inputs.runtime_base }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=min
+          cache-from: ${{ inputs.runtime_base == '' && 'type=gha' || '' }}
+          cache-to: ${{ inputs.runtime_base == '' && 'type=gha,mode=min' || '' }}

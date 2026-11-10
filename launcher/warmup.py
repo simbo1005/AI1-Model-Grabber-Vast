@@ -6,14 +6,15 @@ import time
 from pathlib import Path
 from uuid import uuid4
 import httpx
+from launcher.krast_setup import placeholder_png
 
 
 def node(kind, **inputs):
     return {'class_type': kind, 'inputs': inputs}
 
 
-def jobs():
-    image = {'1': node('LoadImage', image='studio_placeholder.png'),
+def jobs(image_name="dsnn-warmup/neutral.png [temp]"):
+    image = {'1': node('LoadImage', image=image_name),
              '2': node('ImageScale', image=['1', 0], upscale_method='bilinear',
                        width=512, height=512, crop='disabled')}
     helpers = dict(image)
@@ -100,6 +101,19 @@ def model_names(graph):
     return result
 
 
+async def upload_scratch(client):
+    """A unique neutral temp image never reuses or overwrites a user's input."""
+    name = "dsnn-warmup-"+uuid4().hex+".png"
+    response = await client.post('/upload/image',
+        files={'image': (name, placeholder_png(), 'image/png')},
+        data={'type': 'temp', 'subfolder': 'dsnn-warmup', 'overwrite': 'false'})
+    response.raise_for_status()
+    data = response.json()
+    if data.get('name') != name or data.get('type') != 'temp' or data.get('subfolder') != 'dsnn-warmup':
+        raise RuntimeError('ComfyUI returned an unexpected warmup image location')
+    return 'dsnn-warmup/'+name+' [temp]'
+
+
 async def run_warmup(url, directory, workflow, cancelled, notify, warn, *, client=None, timeout=900):
     """Skip on a busy queue; cancel only our own job. A failure never claims readiness."""
     if workflow.get('warmup_profile') != 'krast-faceswap':
@@ -107,6 +121,7 @@ async def run_warmup(url, directory, workflow, cancelled, notify, warn, *, clien
     own_client = client is None
     client = client or httpx.AsyncClient(base_url=url, timeout=30)
     outcomes = []
+    scratch = None
     selected = {Path(f['destination']).name for f in workflow.get('files', [])}
     try:
         for name, graph in jobs():
@@ -122,6 +137,9 @@ async def run_warmup(url, directory, workflow, cancelled, notify, warn, *, clien
             if queue.get('queue_running') or queue.get('queue_pending'):
                 warn('Automatic warmup deferred because ComfyUI has queued work. Run installation again while idle to warm it.')
                 return 'deferred'
+            if scratch is None:
+                scratch = await upload_scratch(client)
+            graph['1']['inputs']['image'] = scratch
             notify('Warming '+name+' (scratch job; no saved workflow changes)…')
             response = await client.post('/prompt', json={'prompt': copy.deepcopy(graph), 'client_id': 'dsnn-warmup-'+uuid4().hex})
             if response.is_error or response.json().get('node_errors'):

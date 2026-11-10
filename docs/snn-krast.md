@@ -66,7 +66,8 @@ selection is preserved.
 
 After downloads, node installation, restart and registration checks, setup runs
 four small scratch jobs: Florence/SAM2/depth, SeedVR2, Qwen 2.1/ControlNet and KRAST.
-They use a neutral placeholder image, 512-pixel test inputs, one sampling step,
+They upload a uniquely named neutral image to ComfyUI’s temporary directory,
+then use 512-pixel test inputs, one sampling step,
 fixed test seeds and the selected workflow LoRAs. Their outputs go only to
 ComfyUI's temporary preview directory. Your saved graph, prompts, photos,
 resolution, model precision, sampler settings and output directory are unchanged.

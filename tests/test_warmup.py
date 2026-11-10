@@ -2,12 +2,22 @@ import asyncio
 import copy
 import importlib.util
 import json
+import re
 from pathlib import Path
 
 import httpx
 import pytest
 
 from launcher import app, hf_cache, warmup
+
+
+def with_scratch(handler):
+    def wrapped(request):
+        if request.url.path == '/upload/image':
+            name=re.search(rb'filename="(dsnn-warmup-[0-9a-f]+[.]png)"',request.content)[1].decode()
+            return httpx.Response(200,json={'name':name,'type':'temp','subfolder':'dsnn-warmup'})
+        return handler(request)
+    return wrapped
 
 
 def workflow():
@@ -18,7 +28,7 @@ def test_warmup_jobs_use_disposable_inputs_and_selected_precisions():
     graphs = dict(warmup.jobs())
     assert len(graphs) == 4
     for graph in graphs.values():
-        assert graph['1']['inputs']['image'] == 'studio_placeholder.png'
+        assert graph['1']['inputs']['image'] == 'dsnn-warmup/neutral.png [temp]'
         assert all(n['class_type'] not in {'SaveImage', 'BondSaveWithCustomMetadata', 'FolderImageLoader_BFT'} for n in graph.values())
         assert all(n['inputs'].get('steps', 1)==1 for n in graph.values())
     assert graphs['KRAST BF16']['3']['inputs']['weight_dtype']=='default'
@@ -54,7 +64,7 @@ def test_warmup_waits_for_execution_completion_and_never_takes_over_queue(busy):
         pytest.fail('Unexpected destructive request: '+request.url.path)
     warnings=[]
     async def run():
-        async with httpx.AsyncClient(base_url='http://comfy',transport=httpx.MockTransport(handler)) as client:
+        async with httpx.AsyncClient(base_url='http://comfy',transport=httpx.MockTransport(with_scratch(handler))) as client:
             return await warmup.run_warmup('http://comfy',Path('/unused'),workflow(),lambda:None,lambda x:None,warnings.append,client=client)
     assert asyncio.run(run()) == ('deferred' if busy else 'complete')
     assert sum(path=='/prompt' for _,path in calls)==(0 if busy else 4)
@@ -67,7 +77,7 @@ def test_validation_errors_do_not_claim_warmup_completed():
         return httpx.Response(400,json={'error':{'message':'missing input'},'node_errors':{'5':{}}})
     warnings=[]
     async def run():
-        async with httpx.AsyncClient(base_url='http://comfy',transport=httpx.MockTransport(handler)) as client:
+        async with httpx.AsyncClient(base_url='http://comfy',transport=httpx.MockTransport(with_scratch(handler))) as client:
             return await warmup.run_warmup('',Path('/unused'),workflow(),lambda:None,lambda x:None,warnings.append,client=client)
     assert asyncio.run(run())=='partial'
     assert len(warnings)==4
@@ -88,7 +98,7 @@ def test_cancellation_cleans_only_our_warmup_job(queued):
             return httpx.Response(200,json={} if len(requests)==1 else {'queue_running':[[1,'other-job']] if queued else [[0,'own-job']], 'queue_pending':[[2,'own-job']] if queued else [[3,'other-job']]})
         return httpx.Response(200,json={})
     async def run():
-        async with httpx.AsyncClient(base_url='http://comfy',transport=httpx.MockTransport(handler)) as client:
+        async with httpx.AsyncClient(base_url='http://comfy',transport=httpx.MockTransport(with_scratch(handler))) as client:
             await warmup.run_warmup('',Path('/unused'),workflow(),cancelled,lambda x:None,lambda x:None,client=client)
     with pytest.raises(app.InstallCancelled):asyncio.run(run())
     mutation=[(p,j) for p,j in requests if p in {'/interrupt','/queue'} and j is not None]
@@ -223,3 +233,25 @@ def test_running_comfy_attention_is_verified_before_warmup(state, valid):
     if valid:asyncio.run(run())
     else:
         with pytest.raises(RuntimeError,match='not running SageAttention'):asyncio.run(run())
+
+
+def test_warmup_image_is_new_neutral_temporary_data_on_every_run():
+    from launcher.krast_setup import placeholder_png
+    names=[]
+    def handler(request):
+        assert request.url.path=='/upload/image'
+        assert placeholder_png() in request.content
+        assert b'\r\ntemp\r\n' in request.content
+        assert b'\r\nfalse\r\n' in request.content
+        name=re.search(rb'filename="(dsnn-warmup-[0-9a-f]+[.]png)"',request.content)[1].decode()
+        names.append(name)
+        return httpx.Response(200,json={'name':name,'type':'temp','subfolder':'dsnn-warmup'})
+    async def run():
+        async with httpx.AsyncClient(base_url='http://comfy',transport=httpx.MockTransport(handler)) as client:
+            first=await warmup.upload_scratch(client)
+            second=await warmup.upload_scratch(client)
+            assert first!=second
+            assert first.endswith(' [temp]') and second.endswith(' [temp]')
+    asyncio.run(run())
+    assert len(set(names))==2
+    assert all('studio_placeholder' not in n for n in names)
