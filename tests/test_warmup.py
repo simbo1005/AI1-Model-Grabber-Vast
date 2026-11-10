@@ -156,3 +156,37 @@ def test_local_attention_wheel_remains_version_constrained(tmp_path):
     assert len(seen)==1
     assert 'sageattention==2.2.0' in seen[0]
     assert 'torch==2.10.0+cu128' in seen[0]
+
+
+def test_runtime_rejects_a_stale_torch_abi_before_using_the_wheel(tmp_path, monkeypatch):
+    import sys
+    from types import SimpleNamespace
+    path=Path(__file__).parents[1]/'docker/attention/launch.py'
+    spec=importlib.util.spec_from_file_location('sage_launch',path)
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    monkeypatch.setattr(module,'ROOT',tmp_path)
+    (tmp_path/'build.json').write_text(json.dumps({'python':list(sys.version_info[:2]),'torch':'2.9.0+cu128','cuda':'12.8','cxx11abi':True}))
+    monkeypatch.setitem(sys.modules,'torch',SimpleNamespace(__version__='2.10.0+cu128',version=SimpleNamespace(cuda='12.8'),_C=SimpleNamespace(_GLIBCXX_USE_CXX11_ABI=True)))
+    with pytest.raises(RuntimeError,match='does not match'):
+        module.ensure_attention()
+
+
+@pytest.mark.parametrize('supports_graph_switch', [False, True])
+def test_launch_enables_sage_and_blocks_unsafe_graph_replay(tmp_path, monkeypatch, supports_graph_switch):
+    import sys
+    path=Path(__file__).parents[1]/'docker/attention/launch.py'
+    spec=importlib.util.spec_from_file_location('sage_launch_flags',path)
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    (tmp_path/'comfy').mkdir()
+    (tmp_path/'comfy/cli_args.py').write_text('parser.add_argument("--disable-cuda-graphs")' if supports_graph_switch else '')
+    seen=[]
+    monkeypatch.setattr(module,'ensure_attention',lambda:None)
+    monkeypatch.setattr(module.os,'chdir',lambda p:None)
+    monkeypatch.setattr(module.runpy,'run_path',lambda *a,**k:seen.append(list(sys.argv)))
+    monkeypatch.setattr(sys,'argv',['launch.py','--base-directory',str(tmp_path),'--use-pytorch-cross-attention','--port','18188'])
+    module.main()
+    assert len(seen)==1
+    assert '--use-sage-attention' in seen[0]
+    assert '--use-pytorch-cross-attention' not in seen[0]
+    assert ('--disable-cuda-graphs' in seen[0]) is supports_graph_switch
+    assert seen[0][-2:]==['18188','--disable-cuda-graphs'] if supports_graph_switch else seen[0][-2:]==['--port','18188']

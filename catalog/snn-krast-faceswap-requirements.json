@@ -81,6 +81,6 @@
     "Krea2_Realistic_Skin_Texture.safetensors"
   ],
   "source_validation_notes": [
-    "SeedVR2LoadDiTModel #4559 cache_model is the string sdpa, but the pinned node schema requires a boolean. The source workflow has not been modified."
+    "SeedVR2LoadDiTModel #4559 cache_model is the string sdpa. ComfyUI coerces this to true for its BOOLEAN input, enabling caching. The original is intentionally unchanged."
   ]
 }

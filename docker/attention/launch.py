@@ -56,7 +56,14 @@ def main():
     root = Path(opts.base_directory).resolve()
     os.chdir(root)
     sys.path.insert(0, str(root))
-    args = [a for a in args if a not in ('--use-pytorch-cross-attention', '--use-flash-attention', '--use-sage-attention')]
+    args = [a for a in args if a not in ('--use-pytorch-cross-attention', '--use-flash-attention',
+        '--use-sage-attention', '--use-ck-attention', '--use-split-cross-attention', '--use-quad-cross-attention')]
+    # SageAttention issue #393: stale output on captured CUDA-graph replay on
+    # Blackwell. Preserve correctness; older provider cores may lack this flag.
+    cli_source = root/'comfy/cli_args.py'
+    if cli_source.is_file() and '"--disable-cuda-graphs"' in cli_source.read_text():
+        if '--disable-cuda-graphs' not in args:
+            args.append('--disable-cuda-graphs')
     sys.argv = [str(root/'main.py'), '--use-sage-attention', *args]
     runpy.run_path(str(root/'main.py'), run_name='__main__')
 

@@ -37,6 +37,9 @@ def main():
     before = fingerprint()
     if before['python'] != [3, 12] or not before['cuda']:
         raise RuntimeError('Expected CUDA Torch with Python 3.12')
+    if not shutil.which('c++'):
+        run('apt-get', 'update')
+        run('apt-get', 'install', '-y', '--no-install-recommends', 'build-essential')
     cuda = Path(os.environ.get('CUDA_HOME', '/usr/local/cuda'))
     if not (cuda/'bin/nvcc').is_file():
         run('apt-get', 'update')

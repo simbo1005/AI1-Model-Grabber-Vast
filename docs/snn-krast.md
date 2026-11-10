@@ -52,7 +52,10 @@ Before ComfyUI starts, its own Python checks the wheel's Python/Torch/CUDA/C++ A
 imports all CUDA extensions, and executes small FP16/BF16 GPU kernel checks against
 PyTorch SDPA. A missing wheel in an existing venv is installed from the image,
 with `--no-index --no-deps`; there is no runtime source compilation or download.
-ComfyUI starts with `--use-sage-attention`. The workflow's explicit SeedVR2 SDPA
+ComfyUI starts with `--use-sage-attention`. On cores that support it,
+`--disable-cuda-graphs` prevents the stale-output replay path reported in
+[SageAttention issue 393](https://github.com/thu-ml/SageAttention/issues/393).
+The workflow's explicit SeedVR2 SDPA
 selection is preserved.
 
 ## Automatic warmup
@@ -88,6 +91,8 @@ Disabled LoRA slots are not required for execution. Exact sources for
 have not been resolved and are not substituted or enabled.
 
 The source graph has `SeedVR2LoadDiTModel` node 4559's `cache_model` set to the
-string `"sdpa"`; its pinned node schema expects a boolean. At your request the
-original is kept unchanged. Resource installation does not fix this source-graph
-validation issue. The separate scratch warmup uses `false` for its own job.
+string `"sdpa"`; its pinned node schema expects a boolean. ComfyUI's validator
+coerces a nonempty string to `true`, so this enables model caching rather than
+causing a validation rejection. At your request the original is kept unchanged.
+The separate scratch warmup uses `false` for its own job to avoid retaining the
+upscaler on the GPU before warming the diffusion models.
