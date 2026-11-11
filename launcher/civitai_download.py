@@ -7,6 +7,7 @@ from pathlib import Path
 import secrets
 import socket
 import tempfile
+import time
 from typing import Callable
 from uuid import uuid4
 
@@ -91,7 +92,7 @@ async def download(
             '--max-connection-per-server='+str(connections), '--min-split-size='+min_split,
             '--max-tries=4', '--retry-wait=3', '--connect-timeout=15', '--timeout=30',
             '--enable-rpc=true', '--rpc-listen-all=false', '--rpc-listen-port='+str(port),
-            '--rpc-secret='+secret, '--gid='+gid, '--stop=5',
+            '--rpc-secret='+secret, '--gid='+gid,
             '--summary-interval=0', '--download-result=hide', '--quiet=true',
         ]
         process = await asyncio.create_subprocess_exec(
@@ -99,6 +100,7 @@ async def download(
         )
         waiting = asyncio.create_task(process.wait())
         failure = ''
+        last_rpc=time.monotonic()
         try:
             # Never send localhost RPC through a Pod's external HTTP proxy.
             async with httpx.AsyncClient(timeout=2, trust_env=False) as client:
@@ -119,7 +121,10 @@ async def download(
                         status = await rpc('tellStatus', gid, KEYS)
                     except (httpx.HTTPError, ValueError):
                         status = None  # Local RPC may still be starting.
+                    if not isinstance(status,dict) and time.monotonic()-last_rpc>15:
+                        raise RuntimeError('Local Civitai progress service is unreachable; partial data was retained.')
                     if isinstance(status, dict):
+                        last_rpc=time.monotonic()
                         progress(max(0,int(status.get('completedLength',0))),
                                  max(0,int(status.get('totalLength',0))),
                                  max(0,float(status.get('downloadSpeed',0))),
