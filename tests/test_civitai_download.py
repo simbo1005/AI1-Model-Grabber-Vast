@@ -36,6 +36,7 @@ def test_private_requests_actual_byte_progress_and_safe_interruption(tmp_path, m
         assert path.stat().st_mode & 0o777==0o600
         assert ('token='+token) in path.read_text()
         assert 'fileId=42' in path.read_text()
+        assert '  out=model.part\n' in path.read_text()
         process=FakeProcess();return process
     def handler(request):
         payload=json.loads(request.content);requests.append(payload)
@@ -47,6 +48,8 @@ def test_private_requests_actual_byte_progress_and_safe_interruption(tmp_path, m
                 result.update(status=outcome, completedLength='1024' if outcome=='complete' else '128',errorCode='24' if outcome=='error' else '0')
         return httpx.Response(200,json={'result':result})
     client=httpx.AsyncClient
+    async def source(url,headers):return url,True
+    monkeypatch.setattr(transfer,'_source',source)
     monkeypatch.setattr(transfer.asyncio,'create_subprocess_exec',spawn)
     monkeypatch.setattr(transfer.httpx,'AsyncClient',lambda **kw:client(transport=httpx.MockTransport(handler),**kw))
     def check():
@@ -137,7 +140,7 @@ def test_real_transfer_handles_range_and_non_range_hosts(tmp_path,origin,support
     asyncio.run(transfer.download(url,{},destination,lambda *x:updates.append(x),lambda:None,connections=4,min_split='1M'))
     assert hashlib.sha256(destination.read_bytes()).digest()==hashlib.sha256(payload).digest()
     assert all(0<=current<=total for current,total,speed,connections in updates)
-    if supports_ranges:assert any(ranges)
+    if supports_ranges:assert sum(bool(re.match(r'bytes=[1-9]\d*-',r)) for r in ranges)>=2
     assert not destination.with_name(destination.name+'.aria2').exists()
 
 
@@ -165,3 +168,11 @@ def test_real_resume_adopts_an_existing_wget_prefix(tmp_path,origin):
     asyncio.run(transfer.download(url,{},destination,lambda *x:None,lambda:None,connections=4,min_split='1M'))
     assert hashlib.sha256(destination.read_bytes()).digest()==hashlib.sha256(payload).digest()
     assert any(ranges)
+
+
+def test_metadata_errors_do_not_expose_civitai_tokens(monkeypatch):
+    client=httpx.AsyncClient
+    monkeypatch.setattr(transfer.httpx,'AsyncClient',lambda **kw:client(transport=httpx.MockTransport(lambda req:httpx.Response(403)),**kw))
+    with pytest.raises(RuntimeError,match='HTTP 403') as error:
+        asyncio.run(transfer._source('https://civitai.com/file?token=private-secret',{}))
+    assert 'private-secret' not in str(error.value)

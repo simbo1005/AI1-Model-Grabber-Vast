@@ -25,12 +25,27 @@ def connection_count() -> int:
         return 8
 
 
-def input_file(path: Path, url: str, headers: dict[str, str]) -> None:
-    values = [url, *headers.keys(), *headers.values()]
+def input_file(path: Path, url: str, headers: dict[str, str], destination: Path) -> None:
+    values = [url, str(destination.parent), destination.name, *headers.keys(), *headers.values()]
     if any('\n' in value or '\r' in value for value in values):
         raise RuntimeError('Invalid newline in download request')
-    path.write_text(url+'\n'+''.join(f'  header={key}: {value}\n' for key,value in headers.items()))
+    path.write_text(url+'\n'+f'  dir={destination.parent}\n  out={destination.name}\n'+''.join(f'  header={key}: {value}\n' for key,value in headers.items()))
     path.chmod(0o600)
+
+
+async def _source(url: str, headers: dict[str, str]) -> tuple[str, bool]:
+    # Resolve authentication once, then give range workers the signed CDN URL.
+    # A one-byte GET also detects origins that cannot service parallel ranges.
+    try:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(30,connect=15),follow_redirects=True) as client:
+            async with client.stream('GET',url,headers={**headers,'Range':'bytes=0-0','Accept-Encoding':'identity'}) as response:
+                if response.status_code >= 400:
+                    raise RuntimeError(f'Civitai/CDN denied the download (HTTP {response.status_code}); check access and CIVITAI_TOKEN.')
+                ranged=response.status_code==206 and response.headers.get('Content-Range','').lower().startswith('bytes ')
+                return str(response.url),ranged
+    except httpx.HTTPError as error:
+        # HTTPX's default errors can include a credential-bearing request URL.
+        raise RuntimeError(f'Could not inspect the Civitai transfer ({type(error).__name__}).') from None
 
 
 async def _stop(process, waiting) -> None:
@@ -57,6 +72,9 @@ async def download(
     """Keep .aria2 piece maps on failure/cancel; never infer progress from file size."""
     connections = connection_count() if connections is None else max(1, min(16, connections))
     destination.parent.mkdir(parents=True, exist_ok=True)
+    check_cancelled()
+    url,ranged=await _source(url,headers)
+    if not ranged:connections=1
     with socket.socket() as listener:
         listener.bind(('127.0.0.1', 0))
         port = listener.getsockname()[1]
@@ -64,11 +82,10 @@ async def download(
     gid = uuid4().hex[:16]
     with tempfile.TemporaryDirectory(prefix='dsnn-civitai-') as temporary:
         request = Path(temporary)/'request.txt'
-        input_file(request, url, headers)
+        input_file(request, url, headers, destination)
         command = [
             'aria2c', '--no-conf=true', '--input-file='+str(request),
-            '--dir='+str(destination.parent), '--out='+destination.name,
-            '--continue=true', '--auto-file-renaming=false', '--allow-overwrite=true',
+            '--continue=true', '--always-resume=false', '--auto-file-renaming=false', '--allow-overwrite=true',
             '--file-allocation=none', '--auto-save-interval=1',
             '--max-concurrent-downloads=1', '--split='+str(connections),
             '--max-connection-per-server='+str(connections), '--min-split-size='+min_split,
