@@ -1406,7 +1406,8 @@
       ],
       "system_packages": [
         "libimage-exiftool-perl",
-        "ffmpeg"
+        "ffmpeg",
+        "aria2"
       ]
     },
     {
@@ -2032,7 +2033,8 @@
       ],
       "system_packages": [
         "libimage-exiftool-perl",
-        "ffmpeg"
+        "ffmpeg",
+        "aria2"
       ],
       "prepare_krast_placeholder": true,
       "required_core_node_types": [

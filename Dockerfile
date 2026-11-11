@@ -80,6 +80,12 @@ COPY docker/attention/check.py docker/attention/launch.py docker/attention/patch
 RUN /venv/main/bin/python /opt/dsnn-attention/check.py \
     && /venv/main/bin/python /opt/dsnn-attention/patch_startup.py vast
 
+# Civitai transfers use parallel ranges; keep this after the native build cache.
+RUN apt-get -o Acquire::Retries=3 update \
+    && apt-get install -y --no-install-recommends aria2 \
+    && aria2c --version \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY launcher/ /opt/dsnn/launcher/
 COPY catalog/ /opt/dsnn/catalog/
 COPY docker/vast/dsnn-launcher.sh /opt/supervisor-scripts/dsnn-launcher.sh

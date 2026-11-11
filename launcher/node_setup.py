@@ -51,6 +51,7 @@ def repair_seedvr_optional_imports(repository: Path) -> bool:
 
 
 SYSTEM_TOOLS = {
+    "aria2": ("aria2c", "--version"),
     "libimage-exiftool-perl": ("exiftool", "-ver"),
     "ffmpeg": ("ffmpeg", "-version"),
 }
@@ -69,7 +70,7 @@ async def ensure_system_tools(
     if missing:
         if not shutil.which("apt-get"):
             raise RuntimeError("Missing system tools; apt-get is unavailable: " + ", ".join(missing))
-        notify("Installing ExifTool and required system tools…")
+        notify("Installing required system tools…")
         for command in (
             ("apt-get", "-o", "Acquire::Retries=3", "update"),
             ("apt-get", "install", "-y", "--no-install-recommends", *missing),

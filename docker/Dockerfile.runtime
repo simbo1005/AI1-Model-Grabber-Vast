@@ -6,6 +6,12 @@ ARG IMAGE_VERSION=dev
 ARG SOURCE_REVISION=unknown
 LABEL org.opencontainers.image.version="${IMAGE_VERSION}" \
       org.opencontainers.image.revision="${SOURCE_REVISION}"
+# Civitai transfers use parallel ranges; keep this after the native build cache.
+RUN apt-get -o Acquire::Retries=3 update \
+    && apt-get install -y --no-install-recommends aria2 \
+    && aria2c --version \
+    && rm -rf /var/lib/apt/lists/*
+
 # --link permits rebasing without unpacking or rebuilding the CUDA layers.
 COPY --link launcher/ /opt/dsnn/launcher/
 COPY --link catalog/ /opt/dsnn/catalog/

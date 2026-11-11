@@ -22,6 +22,7 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from launcher.civitai_download import download as download_civitai
 from launcher.bundled_nodes import prepare_bundled_node
 from launcher.krast_setup import ensure_placeholder
 from launcher.warmup import run_warmup
@@ -1799,6 +1800,11 @@ class JobController:
                 download_ceiling,
                 requires_token=file_spec.get("auth") == "huggingface",
             )
+        if file_spec.get("auth") == "civitai" and shutil.which("aria2c"):
+            return await self._download_file_with_aria2(
+                url, headers, name, destination, partial, expected_size, expected_sha,
+                index, file_count, completed_bytes, known_total, download_ceiling,
+            )
         if shutil.which("wget"):
             return await self._download_file_with_wget(
                 url,
@@ -1997,6 +2003,43 @@ class JobController:
         os.replace(partial, destination)
         return destination.stat().st_size
 
+    async def _download_file_with_aria2(
+        self, url, headers, name, destination, partial, expected_size, expected_sha,
+        index, file_count, completed_bytes, known_total, download_ceiling,
+    ) -> int:
+        staging_dir = destination.parent / ".dsnn-downloads"
+        staging_dir.mkdir(parents=True, exist_ok=True)
+        staging_file = staging_dir / (destination.name + ".part")
+        if partial.exists() and not staging_file.exists():
+            os.replace(partial, staging_file)
+
+        def progress(current, total, speed, connections):
+            file_total = expected_size or total
+            fraction = min(current / file_total, .999) if file_total else 0
+            self.update(
+                stage="downloading", message=f"Downloading {name} from Civitai ({connections} connections)…",
+                current_file=name, file_index=index+1,
+                file_downloaded_bytes=current, file_total_bytes=file_total,
+                downloaded_bytes=completed_bytes+current, total_bytes=known_total or file_total,
+                bytes_per_second=speed,
+                percent=((index+fraction)/max(file_count,1))*download_ceiling,
+            )
+
+        progress(0, expected_size, 0, 0)
+        await download_civitai(url, headers, staging_file, progress, self.check_cancelled)
+        size = staging_file.stat().st_size
+        if expected_size and size != expected_size:
+            raise RuntimeError(f"{name} has the wrong size after download; partial data was retained.")
+        os.replace(staging_file, partial)
+        self.update(message=f"Verifying {name}…", bytes_per_second=0,
+                    file_downloaded_bytes=size, file_total_bytes=expected_size or size)
+        if expected_sha and await asyncio.to_thread(file_sha256, partial) != expected_sha:
+            raise RuntimeError(f"Checksum verification failed for {name}; the .part file was retained.")
+        os.replace(partial, destination)
+        self.update(downloaded_bytes=completed_bytes+size,
+                    percent=((index+1)/max(file_count,1))*download_ceiling)
+        return size
+
     async def _download_file_with_wget(
         self,
         url: str,
@@ -2018,6 +2061,8 @@ class JobController:
         # API URLs have query strings, and redirects can supply another name.
         # Give wget the exact path that progress, verification and resume use.
         staging_file = staging_dir / (destination.name + ".part")
+        if staging_file.with_name(staging_file.name + ".aria2").exists():
+            raise RuntimeError("This segmented download needs aria2 to resume safely; install aria2 or use the updated image.")
         if partial.exists():
             os.replace(partial, staging_file)
 

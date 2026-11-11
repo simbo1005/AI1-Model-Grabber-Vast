@@ -53,14 +53,16 @@ jobs:
 
       - name: Test launcher
         run: |
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends aria2
           python -m pip install -r requirements-launcher.txt pytest
           python -m pytest
 
       - name: Audit custom-node requirements
         run: python scripts/audit_node_requirements.py
 
+      # The aria2 runtime layer also needs room to unpack the provider base.
       - name: Free runner disk space
-        if: ${{ inputs.runtime_base == '' }}
         run: |
           echo "Disk space before cleanup:"
           df -h /

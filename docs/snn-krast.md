@@ -23,6 +23,13 @@ Set `HF_TOKEN` in your template for the private `simbo926/rmdl` LoRA. Set
 `CIVITAI_TOKEN` for the existing RedQW model and companion Civitai LoRA. An exact
 HF mirror of those two Civitai files has not been verified; the available HF
 RedQW candidate has a different hash and precision and is not substituted.
+Civitai files use aria2 with up to eight parallel connections, persistent resume
+piece maps and live received-byte/speed counters. Size and SHA-256 are verified
+before the model is installed. `LAUNCHER_CIVITAI_CONNECTIONS=1` selects a
+single-connection baseline; values are capped at 16. The Hugging Face CLI/Xet
+path is unchanged. Actual throughput still depends on the host-to-CDN route,
+source limits and local storage.
+
 Credentials are never written into source or image layers.
 
 ## Nodes and versions
