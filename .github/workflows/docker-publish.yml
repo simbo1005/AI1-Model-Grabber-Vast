@@ -87,7 +87,7 @@ jobs:
         run: |
           node --check launcher/static/app.js
           node --test tests/download_estimates.cjs
-          bash -n docker/entrypoint.sh
+          bash -n docker/vast/dsnn-launcher.sh
 
       # The aria2 runtime layer also needs room to unpack the provider base.
       - name: Free runner disk space
