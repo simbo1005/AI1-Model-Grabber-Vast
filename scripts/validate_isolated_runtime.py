@@ -36,6 +36,45 @@ async def main():
             for node in workflow['custom_nodes']:
                 print('Installing',node['name'],node['ref'],flush=True)
                 await job._install_custom_node(node)
+                if node['name']=='ComfyUI-SeedVR2_VideoUpscaler':
+                    # Only this disposable CPU-check checkout gets a fallback
+                    # device for schema enumeration. SeedVR2 otherwise indexes
+                    # an empty devices[0] without a GPU. Production is unedited.
+                    source=runtime.nodes/node['name']/'src/optimization/memory_manager.py'
+                    text=source.read_text()
+                    if 'def get_device_list(include_none: bool = False, include_cpu: bool = False)' not in text:
+                        raise RuntimeError('SeedVR2 CPU schema probe needs review after a device API change.')
+                    source.write_text(text+'''\n# Disposable CPU-only CI schema probe; never included in the runtime image.
+_dsnn_original_device_list = get_device_list
+def get_device_list(include_none=False, include_cpu=False):
+    return _dsnn_original_device_list(include_none, include_cpu) or ["cpu"]
+''')
+                    print('SeedVR2: CPU-only schema enumeration shim applied in disposable checkout; no GPU claim.',flush=True)
+                if node['name']=='ComfyUI_Nvidia_VFX_Nodes':
+                    probe='''import ctypes,importlib.util,json,runpy
+from pathlib import Path
+import torch
+root=Path(importlib.util.find_spec('nvvfx').origin).parent
+loader=runpy.run_path(str(root/'_lib_loader.py'))
+errors={}
+for name in loader['_LINUX_LIBS']:
+    path=root/'libs'/name
+    if path.exists():
+        try:ctypes.CDLL(str(path),mode=ctypes.RTLD_GLOBAL)
+        except OSError as error:errors[name]=str(error)
+print('DSNN_VFX_LIBS='+json.dumps(errors))
+'''
+                    code,result=await runtime.isolated_run(run)(runtime.python,'-c',probe)
+                    print(result,flush=True)
+                    if code:raise RuntimeError('Could not inspect the VFX SDK library dependencies.')
+                    errors=json.loads(next(line.partition('=')[2] for line in result.splitlines() if line.startswith('DSNN_VFX_LIBS=')))
+                    def driver_only(name,seen=()):
+                        if name in ('libcuda.so.1','libnvidia-ngx.so.1'):return True
+                        if name in seen or name not in errors:return False
+                        missing=errors[name].partition(':')[0]
+                        return driver_only(missing,(*seen,name))
+                    unexpected=[error for name,error in errors.items() if not driver_only(name)]
+                    if unexpected:raise RuntimeError('VFX has missing non-driver dependencies: '+str(unexpected))
                 if node['name']=='ComfyUI-Impact-Pack':
                     code,result=await run('node',ROOT/'tests/impact_frontend_regression.cjs',runtime.nodes/node['name']/'js/impact-pack.js')
                     if code:raise RuntimeError(result)

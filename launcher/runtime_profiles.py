@@ -74,6 +74,13 @@ class RuntimeController:
             env.pop(name,None)
         env['PYTHONNOUSERSITE']='1';env['VIRTUAL_ENV']=str(self.venv)
         env['PATH']=str(self.venv/'bin')+os.pathsep+env.get('PATH','')
+        # NVIDIA's VFX 0.2 Linux SDK bundles NPP 12 libraries, while its
+        # ComfyUI node requires Torch CUDA 13. Expose only the small companion
+        # CUDA 12 runtime; never put the SDK's cuDNN shim ahead of Torch.
+        companions=[str(path) for path in self.venv.glob('lib/python3.*/site-packages/nvidia/cuda_runtime/lib')
+                    if path.is_dir() and path.resolve().is_relative_to(self.venv.resolve())]
+        if companions:
+            env['LD_LIBRARY_PATH']=os.pathsep.join(filter(None,[env.get('LD_LIBRARY_PATH',''),*companions]))
         return env
 
     def isolated_run(self,run):
@@ -84,15 +91,18 @@ class RuntimeController:
 
     @contextmanager
     def requirements(self, source):
-        """Pin the reviewed Impact Pack VCS dependency without editing its checkout."""
+        """Pin reviewed SAM2/VFX dependencies without editing node checkouts."""
         source=Path(source)
         unpinned='git+https://github.com/facebookresearch/sam2'
+        reviewed={unpinned:unpinned+'@2b90b9f5ceec907a1c18123530e92e794ad901a4'}
+        if source.parent.name=='ComfyUI_Nvidia_VFX_Nodes':
+            reviewed['nvidia-vfx>=0.2']='nvidia-vfx==0.2.0.0\nnvidia-cuda-runtime-cu12==12.9.79'
         lines=source.read_text().splitlines()
-        if not any(line.strip()==unpinned for line in lines):
+        if not any(line.strip() in reviewed for line in lines):
             yield source;return
         with tempfile.TemporaryDirectory(prefix='dsnn-node-source-') as temporary:
             target=Path(temporary)/'requirements.txt'
-            target.write_text('\n'.join(unpinned+'@2b90b9f5ceec907a1c18123530e92e794ad901a4' if line.strip()==unpinned else line for line in lines)+'\n')
+            target.write_text('\n'.join(reviewed.get(line.strip(),line) for line in lines)+'\n')
             yield target
 
     async def idle(self):

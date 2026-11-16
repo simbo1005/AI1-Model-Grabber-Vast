@@ -195,3 +195,16 @@ def test_ngx_repairs_only_the_exact_userspace_library(tmp_path):
     assert (install/'libnvidia-ngx.so').resolve().read_text()=='userspace ngx'
     assert not any(command[:2]==('apt-get','install') for command in commands)
     assert {p.name for p in install.iterdir()}=={'libnvidia-ngx.so','libnvidia-ngx.so.1','libnvidia-ngx.so.595.91.07'}
+
+
+def test_vfx_companion_runtime_is_isolated_and_does_not_override_torch_cudnn(tmp_path,monkeypatch):
+    c=controller(tmp_path);source=tmp_path/'ComfyUI_Nvidia_VFX_Nodes/requirements.txt'
+    source.parent.mkdir();source.write_text('nvidia-vfx>=0.2\n')
+    with c.requirements(source) as reviewed:
+        assert reviewed.read_text()=='nvidia-vfx==0.2.0.0\nnvidia-cuda-runtime-cu12==12.9.79\n'
+        assert source.read_text()=='nvidia-vfx>=0.2\n'
+    library=c.venv/'lib/python3.12/site-packages/nvidia/cuda_runtime/lib';library.mkdir(parents=True)
+    monkeypatch.setenv('LD_LIBRARY_PATH','/provider/cuda13/lib')
+    assert c.environment()['LD_LIBRARY_PATH']=='/provider/cuda13/lib:'+str(library)
+    assert 'nvvfx' not in c.environment()['LD_LIBRARY_PATH']
+    assert __import__('os').environ['LD_LIBRARY_PATH']=='/provider/cuda13/lib'
