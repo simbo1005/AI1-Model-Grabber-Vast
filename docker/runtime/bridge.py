@@ -71,8 +71,13 @@ def register(server, root):
         if 'Origin' in request.headers:headers['Origin']=target
         try:
             if web.WebSocketResponse().can_prepare(request).ok:
-                async with request.app[key].ws_connect(URL(target+request.raw_path,encoded=True),headers=headers,autoping=False,max_msg_size=0) as upstream:
-                    downstream=web.WebSocketResponse(autoping=False,max_msg_size=0)
+                # Each hop must negotiate its own key/compression context.
+                # Browser extension headers cannot be reused by an independent
+                # aiohttp client handshake (notably permessage-deflate).
+                ws_headers={k:v for k,v in headers.items() if not k.lower().startswith('sec-websocket-')}
+                protocols=tuple(p.strip() for p in request.headers.get('Sec-WebSocket-Protocol','').split(',') if p.strip())
+                async with request.app[key].ws_connect(URL(target+request.raw_path,encoded=True),headers=ws_headers,protocols=protocols,autoping=False,max_msg_size=0) as upstream:
+                    downstream=web.WebSocketResponse(protocols=(upstream.protocol,) if upstream.protocol else (),autoping=False,max_msg_size=0)
                     await downstream.prepare(request)
                     async def relay(source,destination):
                         async for message in source:

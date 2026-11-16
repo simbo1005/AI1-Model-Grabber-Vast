@@ -57,7 +57,7 @@ async def main():
                     else:raise RuntimeError('CPU ComfyUI readiness timed out:\n'+log.read_text()[-20000:])
                 checks=node_registration_checks(workflow['custom_nodes'],response.json())
                 # These packages require a real NVIDIA device even at import.
-                gpu_only={'ComfyUI_Nvidia_VFX_Nodes','ComfyUI-SeedVR2_VideoUpscaler'}
+                gpu_only={'ComfyUI_Nvidia_VFX_Nodes'}
                 failed=[check for check in checks if check['status']!='verified' and check['name'] not in gpu_only]
                 print(json.dumps({'workflow':workflow['id'],'checks':checks,'gpu_validation_pending':sorted(gpu_only)},indent=2),flush=True)
                 if failed:raise RuntimeError('Node registration failed:\n'+log.read_text()[-24000:])

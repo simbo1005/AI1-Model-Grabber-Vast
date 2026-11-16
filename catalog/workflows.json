@@ -2527,7 +2527,13 @@
           "install_requirements": true,
           "name": "ComfyUI-SeedVR2_VideoUpscaler",
           "ref": "4490bd1f482e026674543386bb2a4d176da245b9",
-          "repo": "https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler.git"
+          "repo": "https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler.git",
+          "required_node_types": [
+            "SeedVR2VideoUpscaler",
+            "SeedVR2LoadDiTModel",
+            "SeedVR2LoadVAEModel",
+            "SeedVR2TorchCompileSettings"
+          ]
         },
         {
           "install_requirements": true,

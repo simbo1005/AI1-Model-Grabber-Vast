@@ -107,8 +107,9 @@ def test_bridge_streams_http_and_websockets_and_respects_native_guard(tmp_path):
         bridge=bridge_module();seen=[]
         async def echo(request):
             seen.append((request.raw_path,request.headers.get('Authorization'),request.headers.get('Origin')))
+            if request.path=='/ws':assert 'Sec-WebSocket-Extensions' not in request.headers
             if request.path=='/ws':
-                ws=web.WebSocketResponse();await ws.prepare(request)
+                ws=web.WebSocketResponse(protocols=('comfy-test',));await ws.prepare(request)
                 async for message in ws:
                     if message.type==web.WSMsgType.TEXT:await ws.send_str(message.data)
                     else:await ws.send_bytes(message.data)
@@ -139,7 +140,8 @@ def test_bridge_streams_http_and_websockets_and_respects_native_guard(tmp_path):
                     assert response.status==201 and await response.read()==payload
                     assert response.headers['X-Worker']=='isolated'
                 assert seen[-1]==('/upload/image?name=a%2Fb','Bearer test',f'http://127.0.0.1:{bridge.PORT}')
-                async with client.ws_connect(url+'/ws?clientId=test',headers={'Origin':url}) as ws:
+                async with client.ws_connect(url+'/ws?clientId=test',headers={'Origin':url},compress=15,protocols=('comfy-test',)) as ws:
+                    assert ws.protocol=='comfy-test'
                     await ws.send_str('status');assert (await ws.receive()).data=='status'
                     await ws.send_bytes(b'preview');assert (await ws.receive()).data==b'preview'
                 async with client.post(url+'/prompt',headers={'Origin':'http://untrusted'}) as response:assert response.status==403
