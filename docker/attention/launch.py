@@ -54,6 +54,15 @@ def main():
     opts, args = p.parse_known_args()
     ensure_attention()
     root = Path(opts.base_directory).resolve()
+    # Install a transparent, idle-by-default bridge. New CUDA 13 workflows use
+    # their own process/venv; this native SageAttention environment is unchanged.
+    bridge = ROOT/'runtime_bridge.py'
+    if bridge.is_file():
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('dsnn_runtime_bridge', bridge)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        module.install(root)
     os.chdir(root)
     sys.path.insert(0, str(root))
     args = [a for a in args if a not in ('--use-pytorch-cross-attention', '--use-flash-attention',

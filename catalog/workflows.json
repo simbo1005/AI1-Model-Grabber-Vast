@@ -1,5 +1,5 @@
 {
-  "version": 21,
+  "version": 39,
   "workflows": [
     {
       "id": "krea-2-extended",
@@ -1330,6 +1330,26 @@
           "sha256": "0dbbe0baeca04c2b98d2f3809c6f595608939809c88b695ba971368f17c874b8",
           "auth": "none",
           "parallel": true
+        },
+        {
+          "auth": "none",
+          "destination": "models/loras/bfs_head_v1.1_qwen_2.1.safetensors",
+          "name": "bfs_head_v1.1_qwen_2.1.safetensors",
+          "sha256": "d1d748d5601077f3b6d05766f6823510e901970d916afa404a97e85dc92fa88e",
+          "size_bytes": 260096144,
+          "url": "https://huggingface.co/Alissonerdx/BFS-Best-Face-Swap/resolve/2209ae537ac5e883d6ec7db5b7bd6dccf1a0eba7/bfs_head_v1.1_qwen_2.1.safetensors",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "none",
+          "destination": "models/loras/lenovo_qwen21.safetensors",
+          "name": "lenovo_qwen21.safetensors",
+          "sha256": "7f1e95c3ec1e9c7cea197f7b6f80f601af8e6b479f6ead78ab16df542f447c0e",
+          "size_bytes": 79743896,
+          "url": "https://huggingface.co/gravedigga/loras/resolve/11b2b9b3d5ac76ea4d579720376bd00befcfd2b1/lenovo_qwen21.safetensors",
+          "parallel": true,
+          "default_selected": true
         }
       ],
       "custom_nodes": [
@@ -1366,8 +1386,12 @@
         {
           "name": "ComfyUI-10SOR-Regeneration-Gate",
           "repo": "https://github.com/10sorlabs/ComfyUI-10SOR-Regeneration-Gate.git",
-          "ref": "7d891c3c1abb64cd51913816ecf3eeca343574bc",
-          "install_requirements": true
+          "ref": "2180872a3fcf8bc5f7a9626aeaecc33fb79bebd3",
+          "install_requirements": true,
+          "required_node_types": [
+            "10SORRegenerationGate",
+            "10SORRegenerationControlPanel"
+          ]
         },
         {
           "name": "Bond-Node-Suite",
@@ -2109,6 +2133,630 @@
         }
       ],
       "require_sage_attention": true
+    },
+    {
+      "accent": "#d946ef",
+      "badge": "NEW",
+      "custom_nodes": [
+        {
+          "install_requirements": true,
+          "name": "ComfyUI-KJNodes",
+          "ref": "8692bc8ef8beaaeee80fd52ba80477dc9e61547b",
+          "repo": "https://github.com/kijai/ComfyUI-KJNodes.git"
+        },
+        {
+          "install_requirements": true,
+          "name": "rgthree-comfy",
+          "ref": "6b76ee6f2c5a007710b5a16f97c94330d6ecc871",
+          "repo": "https://github.com/rgthree/rgthree-comfy.git"
+        },
+        {
+          "install_requirements": true,
+          "name": "ComfyUI-VideoHelperSuite",
+          "ref": "4ee72c065db22c9d96c2427954dc69e7b908444b",
+          "repo": "https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git"
+        },
+        {
+          "name": "Bond-Node-Suite",
+          "repo": "https://github.com/bondngn-studios/Bond-Node-Suite.git",
+          "ref": "8d2f6ce3abd471442bfd6785226154ec605aea0a",
+          "install_requirements": true,
+          "required_node_types": [
+            "PromptJSONSelector",
+            "BatchIntPick",
+            "BatchStringPick",
+            "BondPromptArrayIterator",
+            "CartesianIndexDriverImg",
+            "CartesianIndexDriverImgPrmpt",
+            "RangeStepper",
+            "BondSwitch2to1",
+            "BondSwitch1to2",
+            "BondLoadImage",
+            "BondLoadImageFromPath",
+            "BondLoadVideoFromPath",
+            "BondLoadVideo",
+            "BondBatchImageLoader",
+            "BondShowText",
+            "BondReadMetadata",
+            "BondStripMetadata",
+            "BondGlobalMetadataSettings",
+            "BondSaveWithCustomMetadata",
+            "BondSaveVideoWithMetadata",
+            "BondText",
+            "BondTextConcatenate",
+            "BondSaveTextFile",
+            "BondBatchAudioLoader",
+            "BondResolution",
+            "BondBigNumber"
+          ]
+        }
+      ],
+      "description": "Install the DarkDesire Krea 2, H3 ErosMax and BSS Desire model stack with the MiniMax H3 INT8 video VAE and two upscalers. Uses an isolated CUDA 13 environment (NVIDIA 580+); existing pipelines retain their own runtime.",
+      "estimated_size": "Approx. 83.2 GB",
+      "files": [
+        {
+          "auth": "civitai",
+          "destination": "models/diffusion_models/DasiwaKrea2TurboRaw_darkdesireV3TurboUC_3251200.safetensors",
+          "name": "DarkDesire V3 Turbo UC",
+          "sha256": "5afd8842e6cf7866912d8916b05d5c41566e0c0b0d0b897cb1f243d99a11c4d6",
+          "size_bytes": 13784925704,
+          "url": "https://civitai.com/api/download/models/3362930?fileId=3251200",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "civitai",
+          "destination": "models/diffusion_models/h3ErosMax_beta6_3282668.safetensors",
+          "name": "H3 ErosMax beta6",
+          "sha256": "ca88b49b06a90e2a0aa9b8d4e1bafc9c09cdba61f6bf57a900c197f4c3f4992d",
+          "size_bytes": 40222950568,
+          "url": "https://civitai.com/api/download/models/3393047?fileId=3282668",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "none",
+          "destination": "models/vae/minimax_h3_video_vae_int8_convrot.safetensors",
+          "name": "MiniMax H3 video VAE INT8 ConvRot",
+          "sha256": "52a2c8c73583c86e4f41cdcce3a6ad0ea562987bc0bf3d60a0cef5f5c8e60c0e",
+          "size_bytes": 2811065184,
+          "url": "https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/4b53a35191437de05370da548e59aeabe2a5a09a/vae/minimax_h3_video_vae_int8_convrot.safetensors",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "civitai",
+          "destination": "models/checkpoints/BSSDesirexKrea2_x3BF16INT8NVFP4_3307067.safetensors",
+          "name": "BSS Desire x Krea 2 X3",
+          "sha256": "7ba351dfc796506c5e9d737084db7cae31654276c287d9a0af79c45a5a1597bc",
+          "size_bytes": 25640224096,
+          "url": "https://civitai.com/api/download/models/3411639?fileId=3307067",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "none",
+          "destination": "models/upscale_models/minimax_h3_latent_upscaler_3d_conv_v1_bf16.safetensors",
+          "name": "MiniMax H3 latent upscaler 3D Conv v1 BF16",
+          "sha256": "4f57821f5837f32f7142b67d815606dbd7550f194e5c769f7d6c3f83b146a5e6",
+          "size_bytes": 690592992,
+          "url": "https://huggingface.co/LBH-123-AI/Minimax_h3_latent_Upscaler/resolve/85a0187096046badc0a71ab6bd6be182ab06c0f4/minimax_h3_latent_upscaler_3d_conv_v1/minimax_h3_latent_upscaler_3d_conv_v1_bf16.safetensors",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "none",
+          "destination": "models/upscale_models/2x-AnimeSharpV4_RCAN.safetensors",
+          "name": "2x AnimeSharpV4 RCAN",
+          "sha256": "6470bb91d6622d6acdff81132c1a8615b961b919ce2b9a01ce993378500cfbe1",
+          "size_bytes": 31053198,
+          "url": "https://huggingface.co/Kim2091/2x-AnimeSharpV4/resolve/1a9339b5c308ab3990f6233be2c1169a75772878/2x-AnimeSharpV4_RCAN.safetensors",
+          "parallel": true,
+          "default_selected": true
+        }
+      ],
+      "id": "darkdesire-h3",
+      "title": "DarkDesire H3",
+      "update_comfyui": false,
+      "runtime_profile": "minimax-h3-cu130",
+      "system_packages": [
+        "libimage-exiftool-perl",
+        "ffmpeg",
+        "aria2"
+      ]
+    },
+    {
+      "accent": "#6fff52",
+      "badge": "NEW",
+      "custom_nodes": [
+        {
+          "install_requirements": true,
+          "name": "ComfyUI-H3-FaceRefine",
+          "ref": "d8521d14fe0d721d80cd9417fff5a559cbc21aba",
+          "repo": "https://github.com/Carasibana/ComfyUI-H3-FaceRefine.git"
+        },
+        {
+          "install_requirements": true,
+          "name": "Comfyui_Minimax_h3_latent_Upscaler",
+          "ref": "40316cf008b2fd8663263270669eb4da23f89d2c",
+          "repo": "https://github.com/LBH-123-AI/Comfyui_Minimax_h3_latent_Upscaler.git"
+        },
+        {
+          "install_requirements": true,
+          "name": "ComfyUI-KJNodes",
+          "ref": "ab72eda7ffad6280422d71ab7d54d3fb87c0ba18",
+          "repo": "https://github.com/kijai/ComfyUI-KJNodes.git"
+        },
+        {
+          "install_requirements": true,
+          "name": "ComfyUI-VideoHelperSuite",
+          "ref": "4d907bee61e92c2e65af3bd6383a4e4d356126d1",
+          "repo": "https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git"
+        },
+        {
+          "install_requirements": true,
+          "name": "ComfyUI-Easy-Use",
+          "ref": "b0b47ca1372117fce575d9e744655344ebff6bef",
+          "repo": "https://github.com/yolain/ComfyUI-Easy-Use.git"
+        },
+        {
+          "install_requirements": true,
+          "name": "ComfyUI-Lokken-VideoTools",
+          "ref": "0f2eeb3c15e9bf04dff57aa915c8016ef92317ca",
+          "repo": "https://github.com/LordLocksley/ComfyUI-Lokken-VideoTools.git"
+        },
+        {
+          "install_requirements": true,
+          "name": "rgthree-comfy",
+          "ref": "bc48c6aaeca87bedbc14245d89f9bc6be37a630e",
+          "repo": "https://github.com/rgthree/rgthree-comfy.git"
+        },
+        {
+          "install_requirements": true,
+          "name": "ComfyUI_Nvidia_VFX_Nodes",
+          "ref": "38d790ded00650681fa3645362efe28c8560cf40",
+          "repo": "https://github.com/Comfy-Org/ComfyUI_Nvidia_VFX_Nodes.git",
+          "requirements_extra_index_url": "https://pypi.nvidia.com/"
+        },
+        {
+          "name": "Bond-Node-Suite",
+          "repo": "https://github.com/bondngn-studios/Bond-Node-Suite.git",
+          "ref": "8d2f6ce3abd471442bfd6785226154ec605aea0a",
+          "install_requirements": true,
+          "required_node_types": [
+            "PromptJSONSelector",
+            "BatchIntPick",
+            "BatchStringPick",
+            "BondPromptArrayIterator",
+            "CartesianIndexDriverImg",
+            "CartesianIndexDriverImgPrmpt",
+            "RangeStepper",
+            "BondSwitch2to1",
+            "BondSwitch1to2",
+            "BondLoadImage",
+            "BondLoadImageFromPath",
+            "BondLoadVideoFromPath",
+            "BondLoadVideo",
+            "BondBatchImageLoader",
+            "BondShowText",
+            "BondReadMetadata",
+            "BondStripMetadata",
+            "BondGlobalMetadataSettings",
+            "BondSaveWithCustomMetadata",
+            "BondSaveVideoWithMetadata",
+            "BondText",
+            "BondTextConcatenate",
+            "BondSaveTextFile",
+            "BondBatchAudioLoader",
+            "BondResolution",
+            "BondBigNumber"
+          ]
+        }
+      ],
+      "description": "Install the selected ComfyUI models, custom nodes for this workflow. Uses an isolated CUDA 13 environment (NVIDIA 580+); existing pipelines retain their own runtime.",
+      "estimated_size": "Custom setup",
+      "files": [
+        {
+          "auth": "none",
+          "destination": "models/diffusion_models/Minimax-h3_Singularity_ref2va_v2_int8.safetensors",
+          "name": "Minimax-h3_Singularity_ref2va_v2_int8.safetensors",
+          "sha256": "db3ec568863db6f5ec1840210d41653afef73d4df7b0cb489c52ad458b6f8a7f",
+          "size_bytes": 34004507622,
+          "url": "https://huggingface.co/WarmBloodAban/Minimax-h3_Singularity/resolve/1259cf16cd0b655ba691a32fb46a409142762972/Minimax-h3_Singularity_ref2va_v2_int8.safetensors",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "none",
+          "destination": "models/vae/minimax_h3_audio_vae_fp32.safetensors",
+          "name": "minimax_h3_audio_vae_fp32.safetensors",
+          "sha256": "8e505d95dd1561d47abd43d4238fd40d9bb1ae9e147ed0a4cba778d76ae4db48",
+          "size_bytes": 605254808,
+          "url": "https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/4b53a35191437de05370da548e59aeabe2a5a09a/vae/minimax_h3_audio_vae_fp32.safetensors",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "none",
+          "destination": "models/vae/minimax_h3_video_vae_fp16.safetensors",
+          "name": "minimax_h3_video_vae_fp16.safetensors",
+          "sha256": "7c1f131492e7eddacaac9069a61b81bdd39de5cc96561e677c5eab1cdce5e522",
+          "size_bytes": 5207808496,
+          "url": "https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/4b53a35191437de05370da548e59aeabe2a5a09a/vae/minimax_h3_video_vae_fp16.safetensors",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "none",
+          "destination": "models/loras/minimax_h3_lms_v1.0_r64.safetensors",
+          "name": "minimax_h3_lms_v1.0_r64.safetensors",
+          "sha256": "16f3195bc6bffa431c0598dc2031e520ba058b4fcbc9f104db9e3fdfdeacf60c",
+          "size_bytes": 1239664536,
+          "url": "https://huggingface.co/Alissonerdx/Minimax-H3-ComfyUI/resolve/fe6f38994fb560778e5ce021f837aaca690f0fb9/loras/minimax_h3_lms_v1.0_r64.safetensors",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "none",
+          "destination": "models/loras/minimax_h3_ref2v_turbo_4step_v0.1_comfyui_resized_avg_rank_21_bf16.safetensors",
+          "name": "minimax_h3_ref2v_turbo_4step_v0.1_comfyui_resized_avg_rank_21_bf16.safetensors",
+          "sha256": "2c6abb194cff3e26c2295c87892913adf0c92d8f784f305238246759f9b333d0",
+          "size_bytes": 326935264,
+          "url": "https://huggingface.co/drbaph/MiniMax-H3-Turbo-Lora-ComfyUI/resolve/bb2bc497cbaca89dadd0bcf1856eed4f8275be20/minimax_h3_ref2v_turbo_4step_v0.1_comfyui_resized_avg_rank_21_bf16.safetensors",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "none",
+          "destination": "models/loras/minimax-h3-facial-realism-closeup-cp2000.safetensors",
+          "name": "minimax-h3-facial-realism-closeup-cp2000.safetensors",
+          "sha256": "df2e588dee147f58d6344910ec758c50d2696761afe2294a0887235336a3d83a",
+          "size_bytes": 74570624,
+          "url": "https://huggingface.co/prithivMLmods/MiniMax-H3-Facial-Realism-CloseUp/resolve/60389436fb9e66fef38b048215c6156e1d36ab3e/minimax-h3-facial-realism-closeup-cp2000.safetensors",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "none",
+          "destination": "models/text_encoders/qwen3vl_32b_minimax_h3_int8_convrot.safetensors",
+          "name": "qwen3vl_32b_minimax_h3_int8_convrot.safetensors",
+          "sha256": "bc2ced0fbea64757fa9acddccfc0b3f4819d1dcf1da6c124d690d368be283923",
+          "size_bytes": 27141342152,
+          "url": "https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/4b53a35191437de05370da548e59aeabe2a5a09a/text_encoders/qwen3vl_32b_minimax_h3_int8_convrot.safetensors",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "none",
+          "destination": "models/latent_upscale_models/minimax_h3_latent_upscaler_3d_fp16.safetensors",
+          "name": "minimax_h3_latent_upscaler_3d_fp16.safetensors",
+          "sha256": "043e5a48e161610ef6c3ea974645220354d06fa618abca15f76d084812eb55c2",
+          "size_bytes": 690592672,
+          "url": "https://huggingface.co/LBH-123-AI/Minimax_h3_latent_Upscaler/resolve/671ecf0f1d0a4dd0855f0cb6664bfb6f65c7e491/minimax_h3_latent_upscaler_3d_fp16.safetensors",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "none",
+          "destination": "models/vae_approx/taeh3.safetensors",
+          "name": "taeh3.safetensors",
+          "sha256": "f0f60fa072089997f817402098c2fd90777cb2660dd79cf5df42fc1e3e08e527",
+          "size_bytes": 9791388,
+          "url": "https://huggingface.co/Kijai/MiniMax-H3-TAE/resolve/bcec7bc2b0e0a277bd0d5c028605590de711bfb6/vae_approx/taeh3.safetensors",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "civitai",
+          "destination": "models/diffusion_models/10Eros_Max_h3_8stepTURBO_beta7.safetensors",
+          "name": "10Eros_Max_h3_8stepTURBO_beta7.safetensors",
+          "sha256": "b1361691a953ff7623e5dc628a76e338d592da12e3c9d5652cecb7eeaaa4aa94",
+          "size_bytes": 40222934448,
+          "url": "https://civitai.com/api/download/models/3429412?fileId=3330999",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "civitai",
+          "destination": "models/loras/MysticXXX_MMH3-V5.safetensors",
+          "name": "MysticXXX_MMH3-V5.safetensors",
+          "sha256": "4168917daeb6e570a004bc6994f73d091b9f3e887f7e946bd00c0f2f7573e5f3",
+          "size_bytes": 298932824,
+          "url": "https://civitai.com/api/download/models/3416478?fileId=3309543",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "civitai",
+          "destination": "models/loras/MysticXXX_MMH3-V5-ref2va.safetensors",
+          "name": "MysticXXX_MMH3-V5-ref2va.safetensors",
+          "sha256": "f57c76e761f7a5113e541ad58e84c648a5fe4d3cfbc277d0c44ae9763da29afe",
+          "size_bytes": 138339432,
+          "url": "https://civitai.com/api/download/models/3416478?fileId=3311427",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "civitai",
+          "destination": "models/loras/MMH3-RealismSlider-V1.safetensors",
+          "name": "MMH3-RealismSlider-V1.safetensors",
+          "sha256": "96a7bed24f7aa1351c6066666495ee64046faf130f53224f4e4a44b3b49b038d",
+          "size_bytes": 2700080,
+          "url": "https://civitai.com/api/download/models/3421124?fileId=3315156",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "civitai",
+          "destination": "models/loras/H3_VBVR_Pro-V2.safetensors",
+          "name": "H3_VBVR_Pro-V2.safetensors",
+          "sha256": "cb3e9f2e395f63e0325213c0b802f26e6d4b6b1caf3f714a969b9aa56242bccb",
+          "size_bytes": 1240538680,
+          "url": "https://civitai.com/api/download/models/3449495?fileId=3349187",
+          "parallel": true,
+          "default_selected": true
+        }
+      ],
+      "id": "minimax-h3-v2",
+      "runtime_profile": "minimax-h3-cu130",
+      "title": "MiniMax H3 V2",
+      "update_comfyui": false,
+      "system_packages": [
+        "libimage-exiftool-perl",
+        "ffmpeg",
+        "aria2"
+      ]
+    },
+    {
+      "accent": "#ff527d",
+      "badge": "NEW",
+      "custom_nodes": [
+        {
+          "install_requirements": true,
+          "name": "rgthree-comfy",
+          "ref": "bc48c6aaeca87bedbc14245d89f9bc6be37a630e",
+          "repo": "https://github.com/rgthree/rgthree-comfy.git"
+        },
+        {
+          "install_requirements": true,
+          "name": "ComfyUI-Custom-Scripts",
+          "ref": "609f3afaa74b2f88ef9ce8d939626065e3247469",
+          "repo": "https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git"
+        },
+        {
+          "install_requirements": true,
+          "name": "ComfyUI-SeedVR2_VideoUpscaler",
+          "ref": "4490bd1f482e026674543386bb2a4d176da245b9",
+          "repo": "https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler.git"
+        },
+        {
+          "install_requirements": true,
+          "name": "ComfyUI-Easy-Use",
+          "ref": "d08ce763bc28e952566ecda91235709aa3fc6bbb",
+          "repo": "https://github.com/yolain/ComfyUI-Easy-Use.git"
+        },
+        {
+          "install_requirements": true,
+          "name": "ComfyUI-KJNodes",
+          "ref": "56781c108c520e9c75db140b6886927c1785e3d2",
+          "repo": "https://github.com/kijai/ComfyUI-KJNodes.git"
+        },
+        {
+          "install_requirements": true,
+          "name": "ComfyUI-Impact-Subpack",
+          "ref": "50c7b71a6a224734cc9b21963c6d1926816a97f1",
+          "repo": "https://github.com/ltdrdata/ComfyUI-Impact-Subpack.git"
+        },
+        {
+          "install_requirements": true,
+          "name": "ComfyUI-Impact-Pack",
+          "ref": "9e2d41da75c185bf7638f860d5d004035f378e9b",
+          "repo": "https://github.com/ltdrdata/ComfyUI-Impact-Pack.git"
+        },
+        {
+          "install_requirements": true,
+          "name": "RES4LYF",
+          "ref": "cb2c312d979b3ab4aaca97a3b70f892f4be554f4",
+          "repo": "https://github.com/ClownsharkBatwing/RES4LYF.git"
+        },
+        {
+          "name": "Bond-Node-Suite",
+          "repo": "https://github.com/bondngn-studios/Bond-Node-Suite.git",
+          "ref": "8d2f6ce3abd471442bfd6785226154ec605aea0a",
+          "install_requirements": true,
+          "required_node_types": [
+            "PromptJSONSelector",
+            "BatchIntPick",
+            "BatchStringPick",
+            "BondPromptArrayIterator",
+            "CartesianIndexDriverImg",
+            "CartesianIndexDriverImgPrmpt",
+            "RangeStepper",
+            "BondSwitch2to1",
+            "BondSwitch1to2",
+            "BondLoadImage",
+            "BondLoadImageFromPath",
+            "BondLoadVideoFromPath",
+            "BondLoadVideo",
+            "BondBatchImageLoader",
+            "BondShowText",
+            "BondReadMetadata",
+            "BondStripMetadata",
+            "BondGlobalMetadataSettings",
+            "BondSaveWithCustomMetadata",
+            "BondSaveVideoWithMetadata",
+            "BondText",
+            "BondTextConcatenate",
+            "BondSaveTextFile",
+            "BondBatchAudioLoader",
+            "BondResolution",
+            "BondBigNumber"
+          ]
+        }
+      ],
+      "description": "Install the selected ComfyUI models and custom nodes for this workflow. Uses an isolated CUDA 13 environment (NVIDIA 580+); existing pipelines retain their own runtime.",
+      "estimated_size": "Custom setup",
+      "files": [
+        {
+          "auth": "none",
+          "destination": "models/vae/krea2RealVae_v10.safetensors",
+          "name": "krea2RealVae_v10.safetensors",
+          "sha256": "0dbbe0baeca04c2b98d2f3809c6f595608939809c88b695ba971368f17c874b8",
+          "size_bytes": 507591212,
+          "url": "https://huggingface.co/LS110824/vae/resolve/5dda4d7058c32fe2efd54ee8f1b0a8117e974653/krea2RealVae_v10.safetensors",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "none",
+          "destination": "models/text_encoders/qwen3vl_4b_fp8_scaled.safetensors",
+          "name": "qwen3vl_4b_fp8_scaled.safetensors",
+          "sha256": "54bd5144df0bbc25dd6ccadfcb826b521445a1b06ae5a42570bdd2974ca87094",
+          "size_bytes": 5242467968,
+          "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/588feaf955b08b9ac4723eeb751752ab045dba71/text_encoders/qwen3vl_4b_fp8_scaled.safetensors",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "civitai",
+          "destination": "models/loras/nsfw_helper_slider_loraholic.safetensors",
+          "name": "nsfw_helper_slider_loraholic.safetensors",
+          "sha256": "0278852130a587a6001a904a890474e3b5c04fcd715c0be62870d2eb2b2279c9",
+          "size_bytes": 14345576,
+          "url": "https://civitai.com/api/download/models/3130045?fileId=3010584",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "civitai",
+          "destination": "models/loras/phone_photography_2025_krea2.safetensors",
+          "name": "phone_photography_2025_krea2.safetensors",
+          "sha256": "fd1052897277f2cc43d7fbcb081026a031a259c7e408efa51b507b1b82ec1126",
+          "size_bytes": 228588904,
+          "url": "https://civitai.com/api/download/models/3123277?fileId=3003694",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "civitai",
+          "destination": "models/loras/PAWGK2.2.safetensors",
+          "name": "PAWGK2.2.safetensors",
+          "sha256": "21a5949f957a0d9ff5719283224f91c1f7382b13733da4858d2c3ec03bc336a0",
+          "size_bytes": 228588904,
+          "url": "https://civitai.com/api/download/models/3216551?fileId=3098361",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "civitai",
+          "destination": "models/loras/snofs_krea_v1_6.safetensors",
+          "name": "snofs_krea_v1_6.safetensors",
+          "sha256": "fb6448cadf5293b33b02d650974f6d94280f48315b237198876f0b6a75674f08",
+          "size_bytes": 1562410216,
+          "url": "https://civitai.com/api/download/models/3446779?fileId=3345891",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "civitai",
+          "destination": "models/diffusion_models/gonzaLomoKrea2_v40_fp8.safetensors",
+          "name": "gonzaLomoKrea2_v40_fp8.safetensors",
+          "sha256": "e4385e1f347e78027dcb7f655dc4966a953bfe814a0257f81f5106fdf5e8680b",
+          "size_bytes": 12820129124,
+          "url": "https://civitai.com/api/download/models/3245099?fileId=3128457",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "civitai",
+          "destination": "models/loras/RealisticSnapshotKrea2V2.safetensors",
+          "name": "RealisticSnapshotKrea2V2.safetensors",
+          "sha256": "bc064297da569e9f25fe362d8210b291093fad5fa4f59ea982fa4f7c4151e2bc",
+          "size_bytes": 1562410304,
+          "url": "https://civitai.com/api/download/models/3371723?fileId=3260432",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "civitai",
+          "destination": "models/loras/krea-smartphone-photo-slider.safetensors",
+          "name": "krea-smartphone-photo-slider.safetensors",
+          "sha256": "6468a57747ee8953036aedc28eba2034ad6355789151f4f85ef63260ed3fa2ce",
+          "size_bytes": 28627768,
+          "url": "https://civitai.com/api/download/models/3151907?fileId=3032561",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "civitai",
+          "destination": "models/loras/realism_engine_krea2_v3.1.safetensors",
+          "name": "realism_engine_krea2_v3.1.safetensors",
+          "sha256": "a6712629445a2e91a616568e82befa8c8c7518e891a0f7c9918138634b5b54a5",
+          "size_bytes": 1562410296,
+          "url": "https://civitai.com/api/download/models/3109006?fileId=2988982",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "civitai",
+          "destination": "models/loras/AltGirlKreaV1.5.safetensors",
+          "name": "AltGirlKreaV1.5.safetensors",
+          "sha256": "56745739363f383d494cf1b5a099b66643cffcd9d2688d7a90a6ac1866889d58",
+          "size_bytes": 228587784,
+          "url": "https://civitai.com/api/download/models/3198266?fileId=3079351",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "civitai",
+          "destination": "models/loras/Kurvy_Krea_2_V1.safetensors",
+          "name": "Kurvy_Krea_2_V1.safetensors",
+          "sha256": "8daddbb6a9cb035ca4e5866aef60faf84cd3f64f6d6f32eee54b3b360ec06996",
+          "size_bytes": 1562410400,
+          "url": "https://civitai.com/api/download/models/3305243?fileId=3190258",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "none",
+          "destination": "models/diffusion_models/minimax_h3_image_pruned_int8_convrot.safetensors",
+          "name": "minimax_h3_image_pruned_int8_convrot.safetensors",
+          "sha256": "83eb140f1ff95c068f8a6886e6d3f3d0d4ab2e07bb2fe6d2ef992a51146ee622",
+          "size_bytes": 20979314802,
+          "url": "https://huggingface.co/Comfy-Org/MiniMax-H3-Image/resolve/0bb149f51e3156ed4b90dd45d5620346bfe1df8f/diffusion_models/minimax_h3_image_pruned_int8_convrot.safetensors",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "none",
+          "destination": "models/text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+          "name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+          "sha256": "35a88d51044231fe332301d7a62aa81e3f2cba62febeb446e2c1e3e0ef76f2c6",
+          "size_bytes": 15687142551,
+          "url": "https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/4b53a35191437de05370da548e59aeabe2a5a09a/text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "none",
+          "destination": "models/vae/minimax_h3_image_vae_fp16.safetensors",
+          "name": "minimax_h3_image_vae_fp16.safetensors",
+          "sha256": "d80e9c2e5cfc9844869961ff5a58c9a9e52182df6bfb30b26018dd7f348721af",
+          "size_bytes": 1168505312,
+          "url": "https://huggingface.co/Comfy-Org/MiniMax-H3-Image/resolve/0bb149f51e3156ed4b90dd45d5620346bfe1df8f/vae/minimax_h3_image_vae_fp16.safetensors",
+          "parallel": true,
+          "default_selected": true
+        }
+      ],
+      "id": "krea2-pro",
+      "title": "Krea2 Pro",
+      "update_comfyui": false,
+      "runtime_profile": "minimax-h3-cu130",
+      "system_packages": [
+        "libimage-exiftool-perl",
+        "ffmpeg",
+        "aria2"
+      ]
     }
   ]
 }

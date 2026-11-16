@@ -5,6 +5,7 @@ Standard-library only: this file can also repair an existing GPU instance.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import shutil
 from pathlib import Path
 
@@ -24,6 +25,12 @@ function dsnnImpactStackTrace() {
 """
 
 
+# Impact Pack 9e2d41d already removed the bad reconnect call. Its remaining
+# graph-restore checks still need the reviewed stack/configuringGraph repair.
+_NATIVE_CONNECT_SHA = "4cf8b047d0a71814975e6119479034e6edaf91aeeb5788f2ac789816ceb16e57"
+_NATIVE_CONNECT_REPAIRED_SHA = "514c52c2c45d63dbb3b44355a90782d2e864d3e344ce1fb3f4fd5276d9b9fbc8"
+
+
 def repair_impact_frontend(repository: Path) -> bool:
     """Preserve restored slots and use the node-object connect API.
 
@@ -37,7 +44,8 @@ def repair_impact_frontend(repository: Path) -> bool:
         if (
             original.count("const stackTrace = dsnnImpactStackTrace();") == 3
             and original.count("(app.configuringGraph || stackTrace.includes('loadGraphData'))") == 3
-            and "node.connect(link_info.origin_slot, node, 'input1');" in original
+            and ("node.connect(link_info.origin_slot, node, 'input1');" in original
+                 or hashlib.sha256(original.encode()).hexdigest() == _NATIVE_CONNECT_REPAIRED_SHA)
             and "node.connect(link_info.origin_slot, node.id, 'input1');" not in original
         ):
             return False
@@ -57,6 +65,8 @@ def repair_impact_frontend(repository: Path) -> bool:
             1,
         ),
     )
+    if hashlib.sha256(original.encode()).hexdigest() == _NATIVE_CONNECT_SHA:
+        edits = edits[:-1]
     updated = original
     for before, after, count in edits:
         if updated.count(before) != count:

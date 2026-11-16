@@ -68,6 +68,13 @@ function formatBytes(bytes) {
   return `${value.toFixed(digits)} ${units[index]}`;
 }
 
+function estimatedTransferMinutes(bytes, baseline) {
+  const count = Number.isFinite(Number(bytes)) ? Math.max(0, Number(bytes)) : 0;
+  const candidate = Number(baseline);
+  const rate = Number.isFinite(candidate) && candidate > 0 ? candidate : 57000000;
+  return count > 0 ? Math.max(1, Math.ceil(count / rate / 60)) : 0;
+}
+
 function comfyUrl(serverUrl) {
   if (serverUrl) return serverUrl;
   const host = window.location.hostname;
@@ -202,6 +209,8 @@ function renderWorkflows(isBusy = false) {
         (total, resource) => total + (selection.has(resource.id) ? Number(resource.size_bytes || 0) : 0),
         0,
       );
+      const minutes = estimatedTransferMinutes(selectedBytes, workflow.download_estimates?.baseline_bytes_per_second);
+      const estimateText = minutes ? `~${minutes} min transfer if missing` : "No model downloads selected";
       return `
         <article
           class="workflow-card${selected ? " is-selected" : ""}${expanded ? " is-expanded" : ""}${isBusy ? " is-busy" : ""}"
@@ -221,7 +230,7 @@ function renderWorkflows(isBusy = false) {
             <h3>${escapeText(workflow.title)}</h3>
             <p class="workflow-description">${escapeText(workflow.description)}</p>
             <span class="workflow-card-footer">
-              <span class="workflow-size">${escapeText(formatBytes(selectedBytes) || workflow.estimated_size || "")}</span>
+              <span class="workflow-size">${escapeText(formatBytes(selectedBytes) || workflow.estimated_size || "")}<small class="workflow-estimate">${escapeText(estimateText)}</small>${workflow.runtime_note ? `<small class="workflow-runtime-note">${escapeText(workflow.runtime_note)}</small>` : ""}</span>
               <span class="workflow-expand-label">${expanded ? "HIDE OPTIONS" : "CHOOSE RESOURCES"}</span>
             </span>
           </button>

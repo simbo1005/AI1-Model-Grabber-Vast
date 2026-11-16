@@ -86,6 +86,8 @@ RUN apt-get -o Acquire::Retries=3 update \
     && aria2c --version \
     && rm -rf /var/lib/apt/lists/*
 
+COPY docker/runtime/bridge.py /opt/dsnn-attention/runtime_bridge.py
+
 COPY launcher/ /opt/dsnn/launcher/
 COPY catalog/ /opt/dsnn/catalog/
 COPY docker/vast/dsnn-launcher.sh /opt/supervisor-scripts/dsnn-launcher.sh

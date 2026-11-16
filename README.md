@@ -250,3 +250,7 @@ For a manual build:
 docker build --platform linux/amd64 -t sdcioba/comfyui-workflow-launcher-vast:<tag> .
 docker push sdcioba/comfyui-workflow-launcher-vast:<tag>
 ```
+
+## November upstream preview
+
+See [the integration notes](docs/upstream-2026-11-16.md) for the new tiles, isolated CUDA 13 runtime, preserved DSNN features and preview image tags.

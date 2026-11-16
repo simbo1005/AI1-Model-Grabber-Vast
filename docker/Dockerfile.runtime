@@ -13,5 +13,8 @@ RUN apt-get -o Acquire::Retries=3 update \
     && rm -rf /var/lib/apt/lists/*
 
 # --link permits rebasing without unpacking or rebuilding the CUDA layers.
+COPY --link docker/attention/launch.py /opt/dsnn-attention/launch.py
+COPY --link docker/runtime/bridge.py /opt/dsnn-attention/runtime_bridge.py
+
 COPY --link launcher/ /opt/dsnn/launcher/
 COPY --link catalog/ /opt/dsnn/catalog/

@@ -72,8 +72,8 @@ def test_health_and_public_catalog() -> None:
         response = client.get("/api/catalog")
         assert response.status_code == 200
         workflows = response.json()["workflows"]
-        assert len(workflows) == 7
-        assert sum(not item.get("disabled", False) for item in workflows) == 7
+        assert len(workflows) == 10
+        assert sum(not item.get("disabled", False) for item in workflows) == 10
         assert "files" not in workflows[0]
         assert "custom_nodes" not in workflows[0]
         assert "url" not in workflows[0]
@@ -146,6 +146,9 @@ def test_catalog_contains_installers_but_no_product_workflows() -> None:
         "minimax-h3",
         "krqw2-1",
         "snn-krast",
+        "darkdesire-h3",
+        "minimax-h3-v2",
+        "krea2-pro",
     ]
     assert {
         "image-generation",
@@ -186,7 +189,7 @@ def test_krqw2_1_resources_and_default_selection() -> None:
         if item["id"] == "krqw2-1"
     )
     assert installer["update_comfyui"] is True
-    assert sum(item["size_bytes"] for item in installer["files"]) == 44_298_179_946
+    assert sum(item["size_bytes"] for item in installer["files"]) == 44_638_019_986
     assert [Path(item["destination"]).name for item in installer["files"]] == [
         "redgptK2T2W6A8REDQW21_redqw21UNLOCKEDV2_fp8.safetensors",
         "krea2_turbo_fp8_scaled.safetensors",
@@ -195,6 +198,8 @@ def test_krqw2_1_resources_and_default_selection() -> None:
         "qwen3vl_4b_fp8_scaled.safetensors",
         "qwen_image_2.1_vae_bf16.safetensors",
         "krea2RealVae_v10.safetensors",
+        "bfs_head_v1.1_qwen_2.1.safetensors",
+        "lenovo_qwen21.safetensors",
     ]
     assert [item["name"] for item in installer["custom_nodes"]] == [
         "rgthree-comfy",
@@ -209,12 +214,12 @@ def test_krqw2_1_resources_and_default_selection() -> None:
         for item in installer["custom_nodes"]
     )
     defaults = launcher_app.workflow_with_selected_resources(installer, None)
-    assert len(defaults["files"]) == 7
+    assert len(defaults["files"]) == 9
     public = next(
         item for item in launcher_app.public_catalog()["workflows"]
         if item["id"] == "krqw2-1"
     )
-    assert len(public["resources"]) == 7
+    assert len(public["resources"]) == 9
     assert all(item["selected_by_default"] for item in public["resources"])
     assert all("url" not in item and "auth" not in item for item in public["resources"])
 

@@ -6,7 +6,7 @@ on:
       tag:
         description: Docker image tag
         required: true
-        default: "1.4-test"
+        default: "1.5-test"
       runtime_base:
         description: Optional immutable image from this same repository for launcher-only updates
         required: false
@@ -26,7 +26,26 @@ env:
   GHCR_IMAGE: ghcr.io/simbo1005/comfyui-workflow-launcher-vast
 
 jobs:
+  isolated-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Free validation disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends ffmpeg libimage-exiftool-perl libgl1 libglib2.0-0
+      - name: Validate isolated CUDA 13 software and node registrations
+        run: |
+          python -m pip install -r requirements-launcher.txt
+          python scripts/validate_isolated_runtime.py
+
   publish:
+    needs: isolated-runtime
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
@@ -55,11 +74,20 @@ jobs:
         run: |
           sudo apt-get -o Acquire::Retries=3 update
           sudo apt-get install -y --no-install-recommends aria2
-          python -m pip install -r requirements-launcher.txt pytest
+          python -m pip install -r requirements-launcher.txt pytest "aiohttp>=3.11,<4"
           python -m pytest
 
       - name: Audit custom-node requirements
         run: python scripts/audit_node_requirements.py
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate frontend and shell syntax
+        run: |
+          node --check launcher/static/app.js
+          node --test tests/download_estimates.cjs
+          bash -n docker/entrypoint.sh
 
       # The aria2 runtime layer also needs room to unpack the provider base.
       - name: Free runner disk space

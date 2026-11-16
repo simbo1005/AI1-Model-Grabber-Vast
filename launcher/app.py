@@ -8,6 +8,7 @@ import re
 import shutil
 import sys
 import time
+from contextlib import nullcontext
 from collections import deque
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
@@ -22,6 +23,7 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from launcher.runtime_profiles import RuntimeController, PROFILE as ISOLATED_PROFILE
 from launcher.civitai_download import download as download_civitai
 from launcher.bundled_nodes import prepare_bundled_node
 from launcher.krast_setup import ensure_placeholder
@@ -54,6 +56,15 @@ COMFYUI_VENV = Path(
 ).resolve()
 COMFYUI_LOCAL_URL = os.getenv("COMFYUI_LOCAL_URL", "http://127.0.0.1:8188").rstrip("/")
 DEFAULT_HF_TOKEN_FILE = Path("/opt/dsnn/secrets/hf_token")
+runtime_controller = RuntimeController(COMFYUI_DIR, COMFYUI_VENV, COMFYUI_LOCAL_URL)
+
+
+def current_node_directory():
+    return runtime_controller.nodes if runtime_controller.active() else CUSTOM_NODES_DIR
+
+
+def current_comfy_python():
+    return runtime_controller.python if runtime_controller.active() else COMFYUI_VENV / "bin" / "python"
 
 # Current built-in model locations from ComfyUI's folder_paths.py, plus the two
 # legacy physical directories that ComfyUI still searches for compatible files.
@@ -147,6 +158,7 @@ class JobState:
     restart_required: bool = False
     comfy_restarted: bool = False
     warmup_status: str = "not-requested"
+    runtime_profile: str | None = None
     started_at: str | None = None
     completed_at: str | None = None
     updated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
@@ -431,7 +443,7 @@ def load_catalog() -> dict[str, Any]:
         seen.add(workflow_id)
 
         profile = workflow.get("runtime_profile")
-        if profile not in {None, ""}:
+        if profile not in {None, "", ISOLATED_PROFILE}:
             raise RuntimeError(f"Unsupported runtime profile: {profile}")
 
         links = workflow.get("model_links", [])
@@ -516,6 +528,15 @@ def public_catalog() -> dict[str, Any]:
         public_workflow["resources"] = [
             public_resource(file_spec) for file_spec in workflow.get("files", [])
         ]
+        selected_bytes = sum(item["size_bytes"] for item in public_workflow["resources"] if item["selected_by_default"])
+        baseline = 57_000_000
+        public_workflow["download_estimates"] = {
+            "total_bytes": selected_bytes, "baseline_bytes_per_second": baseline,
+            "default_minutes": max(1, (selected_bytes + baseline*60 - 1)//(baseline*60)) if selected_bytes else 0,
+            "transfer_only": True,
+        }
+        if workflow.get("runtime_profile") == ISOLATED_PROFILE:
+            public_workflow["runtime_note"] = "NVIDIA 580+ · isolated CUDA 13 runtime"
         workflows.append(public_workflow)
 
     return {
@@ -1086,6 +1107,7 @@ class CustomNodeController:
             *(str(part) for part in command),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT,
+            env=runtime_controller.environment() if runtime_controller.active() else None,
         )
         try:
             output, _ = await asyncio.wait_for(process.communicate(), process_timeout(command))
@@ -1126,7 +1148,7 @@ class CustomNodeController:
         if not requirements.is_file():
             return
         self.update(item, status="installing", message="Checking Python requirements…", percent=82)
-        python = COMFYUI_VENV / "bin" / "python"
+        python = current_comfy_python()
         if not python.exists():
             raise RuntimeError(f"ComfyUI's Python environment is not ready: {COMFYUI_VENV}")
         code, output = await install_node_requirements(
@@ -1141,9 +1163,9 @@ class CustomNodeController:
             if not COMFYUI_DIR.exists():
                 raise RuntimeError("ComfyUI is not ready yet.")
 
-            CUSTOM_NODES_DIR.mkdir(parents=True, exist_ok=True)
-            destination = (CUSTOM_NODES_DIR / item.name).resolve()
-            if not destination.is_relative_to(CUSTOM_NODES_DIR.resolve()):
+            current_node_directory().mkdir(parents=True, exist_ok=True)
+            destination = (current_node_directory() / item.name).resolve()
+            if not destination.is_relative_to(current_node_directory().resolve()):
                 raise RuntimeError("The custom node destination is not safe.")
 
             self.update(
@@ -1174,8 +1196,8 @@ class CustomNodeController:
                     f"A folder named {item.name} already exists but does not match this repository."
                 )
 
-            staging = (CUSTOM_NODES_DIR / f".dsnn-{item.id}.part").resolve()
-            if not staging.is_relative_to(CUSTOM_NODES_DIR.resolve()):
+            staging = (current_node_directory() / f".dsnn-{item.id}.part").resolve()
+            if not staging.is_relative_to(current_node_directory().resolve()):
                 raise RuntimeError("The temporary custom node path is not safe.")
             shutil.rmtree(staging, ignore_errors=True)
 
@@ -1279,6 +1301,14 @@ class ComfyServiceController:
             return False
 
     async def _restart(self) -> None:
+        if runtime_controller.active():
+            try:
+                await runtime_controller.restart()
+                mark_comfy_restart_complete()
+                self.update(status="ready", message="Isolated ComfyUI restarted and is ready.", error=None, completed_at=utc_now())
+            except Exception as exc:
+                self.update(status="error", message="ComfyUI restart failed.", error=str(exc), completed_at=utc_now())
+            return
         timeout = httpx.Timeout(connect=3, read=5, write=5, pool=3)
         try:
             async with httpx.AsyncClient(timeout=timeout) as client:
@@ -1337,6 +1367,19 @@ class JobController:
         self.lock = asyncio.Lock()
         self.diagnostics: deque[dict[str, Any]] = deque(maxlen=100)
         self.node_failures: dict[str, str] = {}
+        self.isolated = False
+
+    @property
+    def node_directory(self):
+        return runtime_controller.nodes if self.isolated else CUSTOM_NODES_DIR
+
+    @property
+    def node_python(self):
+        return runtime_controller.python if self.isolated else COMFYUI_VENV / "bin" / "python"
+
+    @property
+    def node_run(self):
+        return runtime_controller.isolated_run(self._run_process) if self.isolated else self._run_process
 
     def update(self, **changes: Any) -> None:
         for key, value in changes.items():
@@ -1419,8 +1462,11 @@ class JobController:
                     bytes_per_second=0,
                 )
                 try:
-                    await comfy_service_controller.start()
-                    await comfy_service_controller.wait()
+                    if self.isolated:
+                        await runtime_controller.activate()
+                    else:
+                        await comfy_service_controller.start()
+                        await comfy_service_controller.wait()
                     self.state.restart_required = False
                     self.state.comfy_restarted = True
                 except Exception as exc:
@@ -1496,6 +1542,8 @@ class JobController:
                 bytes_per_second=0,
                 completed_at=utc_now(),
             )
+        finally:
+            runtime_controller.release()
 
     async def _run_demo(self, workflow: dict[str, Any]) -> None:
         duration = float(
@@ -1530,7 +1578,7 @@ class JobController:
             )
             await asyncio.sleep(duration / steps)
 
-    async def _wait_for_comfyui(self) -> None:
+    async def _wait_for_comfyui(self, path="/system_stats") -> None:
         timeout = int(os.getenv("COMFYUI_READY_TIMEOUT", "600"))
         started = time.monotonic()
         python = COMFYUI_VENV / "bin" / "python"
@@ -1539,7 +1587,7 @@ class JobController:
                 self.check_cancelled()
                 if COMFYUI_DIR.is_dir() and python.is_file():
                     try:
-                        response = await client.get(f"{COMFYUI_LOCAL_URL}/system_stats")
+                        response = await client.get(f"{COMFYUI_LOCAL_URL}{path}")
                         if response.status_code == 200:
                             return
                     except httpx.HTTPError:
@@ -1642,7 +1690,21 @@ class JobController:
     async def _install_workflow(self, workflow: dict[str, Any]) -> None:
         if workflow.get("require_sage_attention") and not Path("/opt/dsnn-attention/build.json").is_file():
             raise RuntimeError("This SNN KRAST update requires the new SageAttention image (Vast 1.4-test / RunPod 2.4-test). Updating launcher files alone cannot add compiled CUDA kernels.")
-        await self._wait_for_comfyui()
+        self.isolated = workflow.get("runtime_profile") == ISOLATED_PROFILE
+        if self.isolated:
+            if not runtime_controller.feature.is_file():
+                raise RuntimeError("This workflow requires the isolated-runtime image: Vast 1.5-test / RunPod 2.5-test.")
+            await self._wait_for_comfyui("/dsnn/runtime")
+            await runtime_controller.prepare(
+                self._run_process,
+                lambda message: self.update(stage="runtime", message=message, bytes_per_second=0),
+                self.check_cancelled,
+                require_ngx=any(n.get("name")=="ComfyUI_Nvidia_VFX_Nodes" for n in workflow.get("custom_nodes",[])),
+            )
+            self.update(runtime_profile=ISOLATED_PROFILE)
+        else:
+            await runtime_controller.deactivate()
+            await self._wait_for_comfyui()
         if workflow.get("require_sage_attention"):
             install_guard(CUSTOM_NODES_DIR)
         files = workflow.get("files", [])
@@ -1654,7 +1716,7 @@ class JobController:
                 "This workflow does not define any files, custom nodes or updates."
             )
 
-        if should_update_comfyui:
+        if should_update_comfyui and not self.isolated:
             if workflow.get("comfyui_ref"):
                 await self._update_comfyui(workflow["comfyui_ref"])
             else:
@@ -2167,21 +2229,21 @@ class JobController:
         os.replace(partial, destination)
         return destination.stat().st_size
 
-    async def _run_process(self, *command: str | Path) -> tuple[int, str]:
+    async def _run_process(self, *command: str | Path, timeout=None, cwd=None, env=None) -> tuple[int, str]:
         """Run an installer command with cancellation and a bounded wait."""
         self.check_cancelled()
         started = time.monotonic()
         process = await asyncio.create_subprocess_exec(
             *(str(part) for part in command),
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.STDOUT,
+            stderr=asyncio.subprocess.STDOUT, cwd=cwd, env=env,
         )
         communicate = asyncio.create_task(process.communicate())
         cancellation = asyncio.create_task(self.cancel_event.wait())
         try:
             done, _pending = await asyncio.wait(
                 {communicate, cancellation},
-                timeout=process_timeout(command),
+                timeout=timeout if timeout is not None else process_timeout(command),
                 return_when=asyncio.FIRST_COMPLETED,
             )
             if cancellation in done:
@@ -2193,7 +2255,7 @@ class JobController:
                 output, _ = await communicate
                 detail = output.decode(errors="replace")[-300:]
                 raise ProcessTimedOut(
-                    f"Command timed out after {human_seconds(process_timeout(command))}: {detail}"
+                    f"Command timed out after {human_seconds(timeout if timeout is not None else process_timeout(command))}: {detail}"
                 )
             output, _ = await communicate
             return process.returncode or 0, output.decode(errors="replace")
@@ -2225,9 +2287,9 @@ class JobController:
 
     async def _install_custom_node(self, node: dict[str, Any]) -> None:
         if node.get("source") == "image_bundle":
-            destination = await prepare_bundled_node(node, CUSTOM_NODES_DIR)
+            destination = await prepare_bundled_node(node, self.node_directory)
         else:
-            destination = await prepare_repository(node, CUSTOM_NODES_DIR, self._run_process)
+            destination = await prepare_repository(node, self.node_directory, self.node_run)
         if node.get("repo", "").rstrip("/").removesuffix(".git").lower() == (
             "https://github.com/numz/comfyui-seedvr2_videoupscaler"
         ):
@@ -2239,25 +2301,26 @@ class JobController:
         self.state.restart_required = True
         requirements = destination / "requirements.txt"
         if node.get("install_requirements", True) and requirements.is_file():
-            python = COMFYUI_VENV / "bin" / "python"
+            python = self.node_python
             if not python.exists():
                 raise RuntimeError(f"ComfyUI's Python environment is not ready: {COMFYUI_VENV}")
-            returncode, output = await install_node_requirements(
-                requirements, python, self._run_process, needs_build_isolation,
-                extra_index_url=str(node.get("requirements_extra_index_url") or "").strip(),
-            )
+            with (runtime_controller.requirements(requirements) if self.isolated else nullcontext(requirements)) as reviewed_requirements:
+                returncode, output = await install_node_requirements(
+                    reviewed_requirements, python, self.node_run, needs_build_isolation,
+                    extra_index_url=str(node.get("requirements_extra_index_url") or "").strip(),
+                )
             if returncode:
                 raise RuntimeError(f"Dependencies failed for {node['name']}: {output[-1500:]}")
         await install_reviewed_post_install(
-            node, destination, COMFYUI_VENV / "bin" / "python",
-            self._run_process, SOURCE_ROOT / "launcher" / "requirements" / "krast-vision.txt",
+            node, destination, self.node_python,
+            self.node_run, SOURCE_ROOT / "launcher" / "requirements" / "krast-vision.txt",
         )
 
     async def _ensure_system_packages(self, packages: list[str]) -> None:
         if not packages:
             return
         await ensure_system_tools(
-            packages, self._run_process,
+            packages, self.node_run,
             lambda message: self.update(stage="installing", message=message, bytes_per_second=0),
         )
 
@@ -2289,7 +2352,7 @@ class JobController:
             raise RuntimeError("Custom nodes are not ready. " + names)
 
     async def _install_custom_nodes(self, nodes: list[dict[str, Any]]) -> None:
-        CUSTOM_NODES_DIR.mkdir(parents=True, exist_ok=True)
+        self.node_directory.mkdir(parents=True, exist_ok=True)
         self.node_failures.clear()
         checks = [{"name": node["name"], "status": "pending", "message": "Waiting to install."}
                   for node in nodes]
@@ -2366,7 +2429,7 @@ async def status() -> dict[str, Any]:
 @app.get("/api/diagnostics")
 async def diagnostics() -> dict[str, Any]:
     """Recent timings only; intentionally excludes URLs, paths, and credentials."""
-    return {"records": list(controller.diagnostics)}
+    return {"records": list(controller.diagnostics), "runtime_profile": dict(runtime_controller.report)}
 
 
 @app.get("/api/diagnostics/report", response_class=PlainTextResponse)
@@ -2375,6 +2438,10 @@ async def diagnostics_report() -> str:
     if not records:
         return "No installer diagnostics have been recorded yet.\n"
     lines = ["dsnn Model Grabber diagnostics", ""]
+    if runtime_controller.report.get("profile"):
+        lines.extend(["Runtime: " + str(runtime_controller.report["profile"]),
+                      "Runtime phase: " + str(runtime_controller.report.get("phase", "unknown")),
+                      "Versions: " + json.dumps(runtime_controller.report.get("versions", {}), sort_keys=True), ""])
     for record in records:
         lines.append(
             f"{record['phase']}: {record['label']} — "
