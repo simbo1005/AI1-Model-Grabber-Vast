@@ -59,7 +59,7 @@ class RuntimeController:
     def selection(self):
         if not self.marker.exists():return {'active':None,'busy':False}
         data=json.loads(self.marker.read_text())
-        if data.get('active') not in (None,PROFILE) or not isinstance(data.get('busy',False),bool):
+        if not isinstance(data,dict) or data.get('active') not in (None,PROFILE) or not isinstance(data.get('busy',False),bool):
             raise RuntimeError('Invalid DSNN runtime selection')
         return {'active':data.get('active'),'busy':data.get('busy',False)}
 
@@ -195,6 +195,10 @@ class RuntimeController:
             good,details=await inspect()
         if not good:raise RuntimeError('Isolated CUDA 13 imports/GPU access could not be verified. The native environment was not modified.')
         self.report['versions'].update(details['versions']);self.report['versions']['cuda']='13.0'
+        # Python 3.12 venvs no longer include setuptools. These small build
+        # tools are needed by reviewed node sdists (not CUDA kernel builds).
+        await checked(self.python,'-m','pip','install','--disable-pip-version-check',
+                      'setuptools<83','wheel','Cython>=3,<4')
         stamp=self.folder/'core-requirements.json'
         if not stamp.exists() or json.loads(stamp.read_text()).get('core')!=CORE_REF:
             notify('Installing the isolated ComfyUI dependencies…')
@@ -226,11 +230,14 @@ class RuntimeController:
     async def stop(self):
         data=self._pid()
         if data:
-            os.killpg(data['pid'],signal.SIGTERM)
+            try:os.killpg(data['pid'],signal.SIGTERM)
+            except ProcessLookupError:pass
             for _ in range(50):
                 if not self._pid():break
                 await asyncio.sleep(.1)
-            else:os.killpg(data['pid'],signal.SIGKILL)
+            else:
+                try:os.killpg(data['pid'],signal.SIGKILL)
+                except ProcessLookupError:pass
         self.pidfile.unlink(missing_ok=True)
 
     async def _start(self):

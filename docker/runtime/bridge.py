@@ -21,7 +21,7 @@ def state(root):
     path=Path(root)/'.dsnn/runtime.json'
     if not path.exists():return {'active':None,'busy':False}
     data=json.loads(path.read_text())
-    if data.get('active') not in (None,PROFILE) or not isinstance(data.get('busy',False),bool):
+    if not isinstance(data,dict) or data.get('active') not in (None,PROFILE) or not isinstance(data.get('busy',False),bool):
         raise ValueError('Invalid DSNN runtime selection')
     return {'active':data.get('active'),'busy':data.get('busy',False)}
 

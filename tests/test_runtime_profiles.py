@@ -172,3 +172,24 @@ def test_ngx_never_installs_driver_packages_when_no_exact_match(tmp_path):
         asyncio.run(ngx_setup.ensure(run,'595.91.07',lambda _:None,tmp_path))
     assert not any('install' in args for args in commands)
     assert not list(tmp_path.glob('libnvidia*'))
+
+
+def test_ngx_repairs_only_the_exact_userspace_library(tmp_path):
+    driver='595.91.07';install=tmp_path/'lib';install.mkdir();commands=[]
+    async def run(*args,**kw):
+        commands.append(tuple(map(str,args)))
+        if args[:2]==('ldconfig','-p'):
+            alias=install/'libnvidia-ngx.so.1'
+            return (0,f' libnvidia-ngx.so.1 (libc6) => {alias}\n' if alias.exists() else '')
+        if args[0]=='apt-cache':return 0,'pkg | 595.91.07-0ubuntu0.24.04.1 | signed-archive'
+        if args[:2]==('apt-get','download'):(kw['cwd']/'package.deb').touch()
+        if args[0]=='dpkg-deb':
+            target=Path(args[3])/'usr/lib/libnvidia-ngx.so.595.91.07'
+            target.parent.mkdir(parents=True);target.write_text('userspace ngx')
+        if args[0]=='install':__import__('shutil').copyfile(args[3],args[4])
+        if args[0]=='ln':Path(args[3]).symlink_to(args[2])
+        return 0,''
+    assert asyncio.run(ngx_setup.ensure(run,driver,lambda _:None,install))==driver
+    assert (install/'libnvidia-ngx.so').resolve().read_text()=='userspace ngx'
+    assert not any(command[:2]==('apt-get','install') for command in commands)
+    assert {p.name for p in install.iterdir()}=={'libnvidia-ngx.so','libnvidia-ngx.so.1','libnvidia-ngx.so.595.91.07'}

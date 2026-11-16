@@ -30,14 +30,16 @@ async def main():
             if args[0]=='nvidia-smi':return 0,'580.0.0\n' # software-only runner, never production
             return await job._run_process(*args,**kwargs)
         await runtime.prepare(run,lambda message:print(message,flush=True),lambda:None,require_gpu=False)
-        code,output=await runtime.isolated_run(run)(runtime.python,'-m','pip','install','setuptools','wheel','Cython')
-        if code:raise RuntimeError(output[-5000:])
         for workflow in app.load_catalog()['workflows']:
             if workflow.get('runtime_profile')!=PROFILE:continue
             print('Validating node installation:',workflow['id'],flush=True)
             for node in workflow['custom_nodes']:
                 print('Installing',node['name'],node['ref'],flush=True)
                 await job._install_custom_node(node)
+                if node['name']=='ComfyUI-Impact-Pack':
+                    code,result=await run('node',ROOT/'tests/impact_frontend_regression.cjs',runtime.nodes/node['name']/'js/impact-pack.js')
+                    if code:raise RuntimeError(result)
+                    print(result,flush=True)
             log=folder/(workflow['id']+'.log')
             with log.open('wb') as output:
                 process=await asyncio.create_subprocess_exec(str(runtime.python),str(runtime.core/'main.py'),

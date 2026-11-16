@@ -1151,9 +1151,10 @@ class CustomNodeController:
         python = current_comfy_python()
         if not python.exists():
             raise RuntimeError(f"ComfyUI's Python environment is not ready: {COMFYUI_VENV}")
-        code, output = await install_node_requirements(
-            requirements, python, self._run_process, needs_build_isolation,
-        )
+        with (runtime_controller.requirements(requirements) if runtime_controller.active() else nullcontext(requirements)) as reviewed_requirements:
+            code, output = await install_node_requirements(
+                reviewed_requirements, python, self._run_process, needs_build_isolation,
+            )
         if code:
             raise RuntimeError("Custom node requirements failed: " + output[-1500:])
 
@@ -1394,6 +1395,8 @@ class JobController:
         async with self.lock:
             if self.task and not self.task.done():
                 raise HTTPException(status_code=409, detail="A workflow is already installing.")
+            if any(task and not task.done() for task in (custom_node_controller.worker_task, comfy_service_controller.task)):
+                raise HTTPException(status_code=409, detail="Wait for custom-node installation or ComfyUI restart to finish before choosing a workflow.")
             if workflow.get("disabled"):
                 raise HTTPException(status_code=400, detail="This workflow is not available yet.")
 
@@ -2515,6 +2518,8 @@ async def custom_nodes() -> dict[str, Any]:
 
 @app.post("/api/custom-nodes")
 async def add_custom_node(request: CustomNodeRequest) -> dict[str, Any]:
+    if controller.task and not controller.task.done():
+        raise HTTPException(status_code=409, detail="Wait for workflow setup to finish before installing another custom node.")
     try:
         return await custom_node_controller.enqueue(request.url)
     except RuntimeError as exc:
