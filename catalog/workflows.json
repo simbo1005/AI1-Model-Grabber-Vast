@@ -1440,7 +1440,7 @@
       "description": "KRAST image generation plus FaceSwap WIP with Qwen 2.1 ControlNet, Florence, SAM2 and SeedVR2. Exact workflow model names and full precision. HF CLI transfers, including REDQW21 Unlocked v2/v3, Vérité Realism, Amateur LoRA and the Qwen texture-fix VAE from simbo926/dsnn-krea2-resources. The companion KRQW2.1 LoRA remains on Civitai. SageAttention 2 requires the new image. Automatic scratch warmup after setup. Your private workflow and reference photos stay in custom_wf.",
       "badge": "HF CLI",
       "accent": "#b88746",
-      "estimated_size": "Approx. 109.8 GB",
+      "estimated_size": "Approx. 110.3 GB",
       "update_comfyui": true,
       "files": [
         {
@@ -1900,6 +1900,16 @@
           "size_bytes": 29683482,
           "sha256": "a9db66c9b674c6a5025b6ef3bee71a57c33b8605d8a2de0980470f89002efbbe",
           "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "auth": "none",
+          "destination": "models/vae/krea2RealVae_v10.safetensors",
+          "name": "Krea 2 Real VAE",
+          "sha256": "0dbbe0baeca04c2b98d2f3809c6f595608939809c88b695ba971368f17c874b8",
+          "size_bytes": 507591212,
+          "url": "https://huggingface.co/LS110824/vae/resolve/5dda4d7058c32fe2efd54ee8f1b0a8117e974653/krea2RealVae_v10.safetensors",
           "parallel": true,
           "default_selected": true
         }

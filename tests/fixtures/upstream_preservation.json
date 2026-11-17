@@ -26,8 +26,8 @@
       "files": 7
     },
     "snn-krast": {
-      "sha256": "25e636301e97ebdd1fb160a502b28a9f21f7cbb26acc800e18365ad4680772a1",
-      "files": 46
+      "sha256": "01fcb8ed99043b4cf4f8964d19127d15e42154c2aac83098ee6763d905866efa",
+      "files": 47
     }
   },
   "download_functions": {
@@ -40,7 +40,7 @@
   },
   "civitai_sha256": "259085dcd3737871073ee959c5b86691ed6d6ee68fa3d0e7017d4613464fd65f",
   "resource_refresh_2026_11_17": {
-    "snn-krast": "User-requested HF REDQW21 mirrors, v3, Verite, hash-2534bbff LoRA, texture VAE, RealPLKSR upscaler and reviewed De-AI stack. Other original pipelines unchanged.",
+    "snn-krast": "User-requested HF REDQW21 mirrors, v3, Verite, hash-2534bbff LoRA, texture VAE, RealPLKSR upscaler and reviewed De-AI stack. Other original pipelines unchanged. Also includes the existing verified Krea 2 Real VAE.",
     "krea-2-extended": "Identical Engineer encoder now downloaded from the owner HF mirror; filename, SHA256, precision and defaults preserved."
   }
 }

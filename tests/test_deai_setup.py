@@ -68,7 +68,7 @@ def test_redqw_mirror_preserves_existing_workflow_model_name():
     for name in ['REDQW21-UNLOCKED-v3-FP8-ComfyMCP-builtwithqwen.safetensors',
                  'Verite_realism.safetensors', 'HORNY AMATEUR LORA.safetensors',
                  'texture_fix_vae_for_qwen_image_2.1_bf16.safetensors',
-                 '4xNomosWebPhoto_RealPLKSR.pth']:
+                 '4xNomosWebPhoto_RealPLKSR.pth', 'krea2RealVae_v10.safetensors']:
         resource = next(f for f in files if Path(f['destination']).name == name)
         assert resource['default_selected'] and resource['auth'] == 'none'
         assert app.huggingface_file_reference(resource['url'])
