@@ -18,11 +18,11 @@ def workflow():
 def test_krast_uses_the_exact_public_dataset_and_original_filenames():
     plan = workflow()
     resources = plan['files']
-    assert len(resources) == 41
-    assert sum(f['size_bytes'] for f in resources) == 101266013047
+    assert len(resources) == 46
+    assert sum(f['size_bytes'] for f in resources) == 109773707231
     assert all(f['default_selected'] for f in resources)
-    assert sum(f['auth'] == 'civitai' for f in resources) == 2
-    assert sum(bool(app.huggingface_file_reference(f['url'])) for f in resources) == 39
+    assert sum(f['auth'] == 'civitai' for f in resources) == 1
+    assert sum(bool(app.huggingface_file_reference(f['url'])) for f in resources) == 45
     krast = resources[0]
     reference = app.huggingface_file_reference(krast['url'])
     assert reference == ('simbo926/KrastRaw', 'dataset',
@@ -30,7 +30,7 @@ def test_krast_uses_the_exact_public_dataset_and_original_filenames():
     assert krast['destination'] == 'models/diffusion_models/krastBf16_v3_bf16.safetensors'
     assert krast['sha256'] == '3b2c89871d08bb13e8bf166edb9fd2e23c1349b9b48a0e1cad095f3f03a03335'
     loras = [f for f in resources if f['destination'].startswith('models/loras/')]
-    assert len(loras) == 11
+    assert len(loras) == 13
     mirror = next(f for f in loras if 'RealisticSnapshot' in f['destination'])
     assert '/stormi2/realisticsnapshot2/' in mirror['url']
     assert mirror['sha256'] == 'bc064297da569e9f25fe362d8210b291093fad5fa4f59ea982fa4f7c4151e2bc'
@@ -66,14 +66,14 @@ def test_every_krast_resource_takes_hf_cli_even_if_wget_is_available(tmp_path, m
             await controller._download_file(None, resource, index, 15, 0, 0, 88)
 
     asyncio.run(run())
-    assert len(calls) == 39
+    assert len(calls) == 45
     assert calls[0][0][1] == 'dataset'
     assert sum(token is True for _, _, token in calls) == 1
 
 
 def test_krast_public_resources_default_to_selected():
     public = next(w for w in app.public_catalog()['workflows'] if w['id'] == 'snn-krast')
-    assert len(public['resources']) == 41
+    assert len(public['resources']) == 46
     assert all(f['selected_by_default'] for f in public['resources'])
     assert all('url' not in f and 'auth' not in f for f in public['resources'])
 

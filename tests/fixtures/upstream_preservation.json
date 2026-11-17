@@ -2,7 +2,7 @@
   "baseline": "27129f16ec6c55096265bfc4d3bf3e323c7040bc",
   "workflows": {
     "krea-2-extended": {
-      "sha256": "5ea79d57532283534f84d507a4398cd2887a7275d10425408e456f4e626cc18a",
+      "sha256": "8d8f84d133fa2f23fa7ef9413a7ffe37171cff75fdbe6b051e905f01f4c37c55",
       "files": 41
     },
     "image-edit": {
@@ -26,8 +26,8 @@
       "files": 7
     },
     "snn-krast": {
-      "sha256": "43787ffc24b3252be340deb2659542886dfaf28ef6302ca0708c707796e2cb3c",
-      "files": 41
+      "sha256": "25e636301e97ebdd1fb160a502b28a9f21f7cbb26acc800e18365ad4680772a1",
+      "files": 46
     }
   },
   "download_functions": {
@@ -38,5 +38,9 @@
     "_download_file_with_hf_cli": "7259044ae4465d140484d2dabcb6ccfc56c7e2f4961fc88e467ff68132c154db",
     "_download_file_with_aria2": "547981d9e82d860aa6b1f0453ab2cde0d772984a43183b88ca52cd0b7e7ed73f"
   },
-  "civitai_sha256": "259085dcd3737871073ee959c5b86691ed6d6ee68fa3d0e7017d4613464fd65f"
+  "civitai_sha256": "259085dcd3737871073ee959c5b86691ed6d6ee68fa3d0e7017d4613464fd65f",
+  "resource_refresh_2026_11_17": {
+    "snn-krast": "User-requested HF REDQW21 mirrors, v3, Verite, hash-2534bbff LoRA, texture VAE, RealPLKSR upscaler and reviewed De-AI stack. Other original pipelines unchanged.",
+    "krea-2-extended": "Identical Engineer encoder now downloaded from the owner HF mirror; filename, SHA256, precision and defaults preserved."
+  }
 }

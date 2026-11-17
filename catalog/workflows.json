@@ -237,7 +237,7 @@
         },
         {
           "name": "Krea2 Engineer V1 BF16 text encoder",
-          "url": "https://huggingface.co/BennyDaBall/Krea-2-Engineer-V1/resolve/8051413fd9cc5793ff856562834e345b0098be5d/Krea2-Engineer-V1-bf16.safetensors",
+          "url": "https://huggingface.co/simbo926/dsnn-krea2-resources/resolve/f46eb2cf229ffe61a7f289f3ebd9f2659bd846ba/Krea2-Engineer-V1-bf16.safetensors",
           "destination": "models/text_encoders/Krea2-Engineer-V1-bf16.safetensors",
           "size_bytes": 8875713440,
           "sha256": "06bef753117e22c1afa721d387bb9154fcbad2a4eb6a7eac192221d1396c46ab",
@@ -1437,10 +1437,10 @@
     {
       "id": "snn-krast",
       "title": "SNN KRAST",
-      "description": "KRAST image generation plus FaceSwap WIP with Qwen 2.1 ControlNet, Florence, SAM2 and SeedVR2. Exact workflow model names and full precision. HF CLI transfers; existing Civitai sources for RedQW and its companion LoRA. SageAttention 2 requires the new image. Automatic scratch warmup after setup. Your private workflow and reference photos stay in custom_wf.",
+      "description": "KRAST image generation plus FaceSwap WIP with Qwen 2.1 ControlNet, Florence, SAM2 and SeedVR2. Exact workflow model names and full precision. HF CLI transfers, including REDQW21 Unlocked v2/v3, Vérité Realism, Amateur LoRA and the Qwen texture-fix VAE from simbo926/dsnn-krea2-resources. The companion KRQW2.1 LoRA remains on Civitai. SageAttention 2 requires the new image. Automatic scratch warmup after setup. Your private workflow and reference photos stay in custom_wf.",
       "badge": "HF CLI",
       "accent": "#b88746",
-      "estimated_size": "Approx. 101.3 GB",
+      "estimated_size": "Approx. 109.8 GB",
       "update_comfyui": true,
       "files": [
         {
@@ -1595,7 +1595,7 @@
         },
         {
           "name": "Krea2 Engineer V1 BF16 text encoder",
-          "url": "https://huggingface.co/BennyDaBall/Krea-2-Engineer-V1/resolve/8051413fd9cc5793ff856562834e345b0098be5d/Krea2-Engineer-V1-bf16.safetensors",
+          "url": "https://huggingface.co/simbo926/dsnn-krea2-resources/resolve/f46eb2cf229ffe61a7f289f3ebd9f2659bd846ba/Krea2-Engineer-V1-bf16.safetensors",
           "destination": "models/text_encoders/Krea2-Engineer-V1-bf16.safetensors",
           "size_bytes": 8875713440,
           "sha256": "06bef753117e22c1afa721d387bb9154fcbad2a4eb6a7eac192221d1396c46ab",
@@ -1664,12 +1664,12 @@
           "default_selected": true
         },
         {
-          "name": "REDGPT FP8",
-          "url": "https://civitai.com/api/download/models/3370753?fileId=3258921",
+          "name": "REDQW21 Unlocked v2 FP8",
+          "url": "https://huggingface.co/simbo926/dsnn-krea2-resources/resolve/f33a3ffbfdd67fc8f601919ecb83a667e35ebe7f/REDQW21-UNLOCKED-v2-FP8-ComfyMCP-builtwithqwen.safetensors",
           "destination": "models/diffusion_models/redgptK2T2W6A8REDQW21_redqw21UNLOCKEDV2_fp8.safetensors",
           "size_bytes": 7116801326,
           "sha256": "0efb5aeb2b372025042e320c2e35c66ec6681ef54ad5de88a652ab19cc63ad92",
-          "auth": "civitai",
+          "auth": "none",
           "parallel": true,
           "default_selected": true
         },
@@ -1852,6 +1852,56 @@
           "auth": "none",
           "parallel": true,
           "default_selected": true
+        },
+        {
+          "name": "REDQW21 Unlocked v3 FP8",
+          "url": "https://huggingface.co/simbo926/dsnn-krea2-resources/resolve/f33a3ffbfdd67fc8f601919ecb83a667e35ebe7f/REDQW21-UNLOCKED-v3-FP8-ComfyMCP-builtwithqwen.safetensors",
+          "destination": "models/diffusion_models/REDQW21-UNLOCKED-v3-FP8-ComfyMCP-builtwithqwen.safetensors",
+          "size_bytes": 7116801326,
+          "sha256": "7af4bc0fa89b353e0daa1277b75fb7484f97a94fe5fba909ddeab8fd249def3c",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Vérité Realism Krea 2 LoRA",
+          "url": "https://huggingface.co/simbo926/dsnn-krea2-resources/resolve/f33a3ffbfdd67fc8f601919ecb83a667e35ebe7f/Verite_realism.safetensors",
+          "destination": "models/loras/Verite_realism.safetensors",
+          "size_bytes": 457111960,
+          "sha256": "e947ebc07ee627796196b6dc551326c387ca81af173a5df72a789f135cd21f0b",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Amateur Krea 2 LoRA (2534bbff)",
+          "url": "https://huggingface.co/simbo926/dsnn-krea2-resources/resolve/f33a3ffbfdd67fc8f601919ecb83a667e35ebe7f/HORNY%20AMATEUR%20LORA.safetensors",
+          "destination": "models/loras/HORNY AMATEUR LORA.safetensors",
+          "size_bytes": 228587728,
+          "sha256": "86358d2f1a2797929e449e1573b88bec709f4228c4c736303078d1af79a89adf",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "Qwen Image 2.1 texture-fix VAE BF16",
+          "url": "https://huggingface.co/simbo926/dsnn-krea2-resources/resolve/f33a3ffbfdd67fc8f601919ecb83a667e35ebe7f/texture_fix_vae_for_qwen_image_2.1_bf16.safetensors",
+          "destination": "models/vae/texture_fix_vae_for_qwen_image_2.1_bf16.safetensors",
+          "size_bytes": 675509688,
+          "sha256": "36f56608b02077a50a08ea3dbcdb88351298ceba49948f41f9f87186378e6908",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
+        },
+        {
+          "name": "4x Nomos WebPhoto RealPLKSR upscaler",
+          "url": "https://huggingface.co/panosgr/Upscaler/resolve/da73b47506b4e795e3d440f5ddbcb405a8728552/4xNomosWebPhoto_RealPLKSR.pth",
+          "destination": "models/upscale_models/4xNomosWebPhoto_RealPLKSR.pth",
+          "size_bytes": 29683482,
+          "sha256": "a9db66c9b674c6a5025b6ef3bee71a57c33b8605d8a2de0980470f89002efbbe",
+          "auth": "none",
+          "parallel": true,
+          "default_selected": true
         }
       ],
       "custom_nodes": [
@@ -1911,7 +1961,8 @@
             "LCNaturalLook",
             "LCFilmGrain",
             "LCImageDenoise",
-            "LCColorMatch"
+            "LCColorMatch",
+            "LCLensProfile"
           ],
           "required_input_options": {
             "LCApplyLUT": {
@@ -2052,6 +2103,37 @@
           "install_requirements": true,
           "required_node_types": [
             "ShowText|pysssss"
+          ]
+        },
+        {
+          "name": "ComfyUI_VintageEffect",
+          "repo": "https://github.com/brucew4yn3rp/ComfyUI_VintageEffect.git",
+          "ref": "9f7c52c992a3ca7b9498799291fae2ccc53360d2",
+          "install_requirements": true,
+          "required_node_types": [
+            "Vintage Effect"
+          ]
+        },
+        {
+          "name": "radiance",
+          "repo": "https://github.com/FXTD-Studios/radiance.git",
+          "ref": "0174a5811b64665714a366b209cfd73d44418e91",
+          "install_requirements": true,
+          "required_node_types": [
+            "RadianceCompressionArtifacts"
+          ]
+        },
+        {
+          "name": "DSNN-DeAI-Nodes",
+          "repo": "https://github.com/simbo1005/DSNN-DeAI-Nodes.git",
+          "ref": "629260c26e2dc8e6d65844062bd8f729a0f78024",
+          "install_requirements": false,
+          "post_install": "install.py",
+          "required_node_types": [
+            "Vintage Effect",
+            "LCLensProfile",
+            "RadianceCompressionArtifacts",
+            "BondSaveWithCustomMetadata"
           ]
         }
       ],

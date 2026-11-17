@@ -130,18 +130,49 @@ async def install_requirements(
 
 VISION_INSTALLER_SHA256 = "2f5d75800eb3aab3854e88da2697a75c6de526e9f95a83d4963d392053e786f6"
 
+DEAI_REF = "629260c26e2dc8e6d65844062bd8f729a0f78024"
+DEAI_FILES = {
+    "install.py": "f352436e0ca784df4aba6d1eb8087e0c0981e24d68387211316d421572a4d8cd",
+    "nodes.lock.json": "837c65fed5194328181d2b519fb0b1ff9fb7f815ae5aac42feeb48911b59c829",
+    "runtime/__init__.py": "d1ce85b96c381e2ff97f30f62deed715c11fa5efcb635db9253eba622ef09628",
+    "runtime/performance.py": "d7a6f26668bdf7ed71f2d6bad99f9619ff700cb5fa95e6158632ae74e047a4cc",
+    "overrides/Bond-Node-Suite/bond_nodes.py": "fd303df9a05775505af0418607fa8724cfa91a40d9737278a2e6ea8fef43a07d",
+    "overrides/radiance/film/camera.py": "1215b6d1d9e300a5b6e9f870dfe333853028e481f4bf277492655c0e39b33bd3",
+}
+
 
 async def install_reviewed_post_install(
     node: dict[str, Any], repository: Path, python: Path, run: RunProcess,
     support_requirements: Path,
 ) -> None:
-    """Run only the reviewed vision-wheel installer with ComfyUI's own Python.
+    """Run only pinned, reviewed installers with ComfyUI's own Python.
 
     Its prebuilt wheel is installed with --no-deps; it never compiles a backend
     or changes Torch/numpy to satisfy wheel metadata.
     """
     script = node.get("post_install")
     if not script:
+        return
+    if node.get("name") == "DSNN-DeAI-Nodes":
+        if (script != "install.py" or node.get("ref") != DEAI_REF
+                or str(node.get("repo", "")).rstrip("/").removesuffix(".git").lower()
+                != "https://github.com/simbo1005/dsnn-deai-nodes"):
+            raise RuntimeError("Unsupported De-AI post-install source.")
+        for relative, expected in DEAI_FILES.items():
+            source = repository / relative
+            if (source.is_symlink() or not source.is_file()
+                    or hashlib.sha256(source.read_bytes()).hexdigest() != expected):
+                raise RuntimeError("The reviewed De-AI installer is missing or changed: " + relative)
+        # The four node packages precede this entry in the catalog. Their
+        # dependencies have already gone through our protected CUDA constraints.
+        # Only apply the exact user overrides and install the GPU runtime helper.
+        comfy = repository.parent.parent
+        code, output = await run(
+            python, repository / script, "--comfyui", comfy, "--python", python,
+            "--skip-deps", "--skip-system-tools",
+        )
+        if code:
+            raise RuntimeError("De-AI stack setup failed: " + output[-1500:])
         return
     if (script != "install.py"
             or node.get("name") != "ComfyUI_LC_Vision_nodes"
